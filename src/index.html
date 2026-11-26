@@ -6,7 +6,7 @@
 <button id="history-toggle" class="icon-button" type="button" title="Conversas" aria-label="Abrir lista de conversas" aria-controls="history-drawer" aria-expanded="false">☰</button>
 <span class="mast-title">Conversa</span>
 <button id="open-daily" type="button" aria-controls="daily-overview" aria-expanded="false">Meu dia</button>
-<button id="open-personal" type="button" aria-controls="personal-reminders" aria-expanded="false" aria-label="Lembretes pessoais">Pessoal</button>
+<button id="open-personal" type="button" aria-controls="personal-reminders" aria-expanded="false">Tarefas</button>
 <div class="header-actions">
   <button id="new-chat" type="button" class="icon-button" title="Nova conversa" aria-label="Nova conversa">＋</button>
   <button id="open-settings" type="button" aria-haspopup="dialog" aria-controls="settings-dialog">Ajustes</button>
@@ -18,7 +18,7 @@
 <h2 id="name-intro-heading">Como posso chamar você?</h2>
 <form id="name-intro-form">
 <label class="sr-only" for="intro-name">Seu nome</label><input id="intro-name" name="nickname" autocomplete="nickname" placeholder="Seu nome" maxlength="80" required>
-<p class="hint">Vou guardar seu nome em Ajustes → Memória para personalizar nossas conversas.</p>
+<p class="hint">Vou guardar seu nome em Ajustes → Meus dados → Memória para personalizar nossas conversas.</p>
 <div class="actions"><button type="submit" class="primary">Salvar nome</button><button type="button" id="skip-name-intro" class="quiet">Agora não</button></div>
 </form>
 </section>
@@ -29,17 +29,32 @@
     <div><h2 id="daily-title" tabindex="-1">Meu dia · Trabalho</h2><p id="daily-date" class="hint" hidden></p></div>
     <button id="close-daily" type="button" class="icon-button" title="Fechar Meu dia" aria-label="Fechar Meu dia">×</button>
   </header>
+  <section id="daily-update" class="daily-section daily-update" aria-labelledby="daily-update-title" hidden>
+    <div>
+      <h3 id="daily-update-title">Atualização do Aluguito</h3>
+      <p id="daily-update-state" class="hint" role="status"></p>
+    </div>
+    <button id="daily-check-update" type="button" class="quiet" hidden>Tentar novamente</button>
+    <button id="daily-install-update" type="button" class="primary" hidden>Reiniciar e instalar</button>
+  </section>
   <p id="daily-status" class="hint" role="status"></p>
   <div id="daily-content"></div>
 </section>
 <section id="personal-reminders" class="daily-overview" aria-labelledby="personal-heading" hidden>
   <header class="daily-header">
-    <h2 id="personal-heading" tabindex="-1">Lembretes pessoais</h2>
-    <button id="close-personal" type="button" class="icon-button" aria-label="Fechar lembretes pessoais" title="Fechar">×</button>
+    <h2 id="personal-heading" tabindex="-1">Tarefas pessoais</h2>
+    <button id="close-personal" type="button" class="icon-button" aria-label="Fechar tarefas pessoais" title="Fechar">×</button>
   </header>
-  <div class="daily-section">
+  <div class="daily-section" id="personal-list-view">
+    <div class="personal-list-header">
+      <button type="button" class="primary" id="personal-add" aria-controls="personal-edit">Adicionar tarefa</button>
+    </div>
+    <ul id="personal-list" class="daily-items" aria-label="Tarefas pessoais"></ul>
+  </div>
+  <section id="personal-edit" class="daily-section" aria-labelledby="personal-edit-heading" hidden>
+    <h3 id="personal-edit-heading">Nova tarefa</h3>
     <form id="personal-form">
-      <label for="personal-title">Do que você quer lembrar?</label>
+      <label for="personal-title">O que você precisa fazer?</label>
       <input id="personal-title" required maxlength="160" autocomplete="off" placeholder="Ex.: Bater o ponto">
       <div class="settings-fields">
         <div><label for="personal-repeat">Repetição</label>
@@ -57,14 +72,13 @@
           <label><input type="checkbox" value="0"> Dom</label>
         </div>
       </fieldset>
-      <div class="actions"><button type="submit" class="primary" id="personal-save">Salvar lembrete</button></div>
+      <div class="actions">
+        <button type="button" class="quiet" id="personal-cancel">Cancelar</button>
+        <button type="submit" class="primary" id="personal-save">Salvar tarefa</button>
+      </div>
     </form>
-    <p id="personal-status" class="hint" role="status"></p>
-  </div>
-  <section class="daily-section" aria-labelledby="personal-saved-heading">
-    <h3 id="personal-saved-heading">Seus lembretes</h3>
-    <ul id="personal-list" class="daily-items"></ul>
   </section>
+  <p id="personal-status" class="hint" role="status"></p>
 </section></div><form id="chat-form" class="composer"><label class="sr-only" for="message">Sua mensagem</label><textarea id="message" rows="2" maxlength="24000" placeholder="Escreva sua mensagem"></textarea><div class="composer-bottom"><div class="query-modes"><label class="web-toggle"><input id="use-web" type="checkbox" aria-label="Pesquisar na web"><span class="web-label">Pesquisar na web</span><span class="web-label-compact" aria-hidden="true">Web</span></label><label class="web-toggle"><input id="use-mcp" type="checkbox" disabled> Usar projeto MCP</label><label class="sr-only" for="chat-mcp">MCP para esta solicitação</label><select id="chat-mcp" aria-label="MCP para esta solicitação"></select></div><button type="submit" id="send" class="primary">Enviar</button></div><p id="chat-status" class="hint">Respostas com Gemini</p></form></section>
 <div id="history-backdrop" class="history-backdrop" hidden aria-hidden="true"></div><aside id="history-drawer" class="history-drawer" hidden aria-label="Histórico de conversas"><div class="section-head"><h2>Conversas</h2><button id="history-close" class="icon-button" type="button" aria-label="Fechar lista de conversas" title="Fechar lista">×</button></div><label class="sr-only" for="history-search">Buscar conversa</label><input id="history-search" placeholder="Buscar pelo título"><div id="conversation-list" class="conversation-list"></div></aside></main>
 <div id="settings" class="settings-overlay" hidden>
@@ -75,40 +89,53 @@
 </header>
 <div class="settings-body">
   <div class="settings-tabs" role="tablist" aria-label="Categorias de ajustes" aria-orientation="vertical">
-    <button type="button" role="tab" id="tab-appearance" aria-controls="settings-appearance" aria-selected="true">Aparência</button>
-    <button type="button" role="tab" id="tab-focus" aria-controls="settings-focus" aria-selected="false" tabindex="-1">Pomodoro</button>
-    <button type="button" role="tab" id="tab-gemini" aria-controls="settings-gemini" aria-selected="false" tabindex="-1">Gemini</button>
-    <button type="button" role="tab" id="tab-google" aria-controls="settings-google" aria-selected="false" tabindex="-1">Conta Google</button>
-    <button type="button" role="tab" id="tab-mcp" aria-controls="settings-mcp" aria-selected="false" tabindex="-1">MCP</button>
-    <button type="button" role="tab" id="tab-system" aria-controls="settings-system" aria-selected="false" tabindex="-1">Windows e dados</button>
-    <button type="button" role="tab" id="tab-agenda" aria-controls="agenda" aria-selected="false" tabindex="-1">Agenda</button>
-    <button type="button" role="tab" id="tab-emails" aria-controls="emails" aria-selected="false" tabindex="-1">E-mails</button>
-    <button type="button" role="tab" id="tab-memory" aria-controls="memory" aria-selected="false" tabindex="-1">Memória</button>
+    <button type="button" role="tab" id="tab-google-account" aria-controls="settings-google-account" aria-selected="true">Conta Google</button>
+    <button type="button" role="tab" id="tab-mcp" aria-controls="settings-mcp" aria-selected="false" tabindex="-1">Integrações</button>
+    <button type="button" role="tab" id="tab-my-data" aria-controls="settings-my-data" aria-selected="false" tabindex="-1">Meus dados</button>
+    <button type="button" role="tab" id="tab-appearance" aria-controls="settings-appearance" aria-selected="false" tabindex="-1">Aparência</button>
+    <button type="button" role="tab" id="tab-system" aria-controls="settings-system" aria-selected="false" tabindex="-1">Sobre</button>
   </div>
 <div class="settings-detail">
 <p id="settings-notice" role="status" class="notice" hidden></p>
+<form id="settings-form"></form>
 <div class="settings-content">
-<form id="settings-form">
-<section class="settings-group" id="settings-appearance" role="tabpanel" aria-labelledby="tab-appearance" tabindex="0">
-<h2>Mascote</h2><label for="skin-select">Visual do mascote</label><select id="skin-select"></select>
-<label class="check"><input id="ambient-motion" type="checkbox" checked> Movimentos espontâneos</label>
-<p class="hint">Entre 8h e 20h, o Aluguito pode andar, pular ou voar no lugar enquanto a conversa está recolhida e o Pomodoro está em pausa.</p>
-<details><summary>Importar outra skin</summary><label for="skin-name">Nome da nova skin</label><input id="skin-name" maxlength="60" placeholder="Nome da skin"><div class="actions"><button type="button" id="import-skin" class="quiet">Importar PNG ou WebP</button></div></details>
+<section class="settings-category" id="settings-google-account" role="tabpanel" aria-labelledby="tab-google-account">
+  <div class="settings-subtabs" role="tablist" aria-label="Conta Google">
+    <button type="button" role="tab" id="tab-google" aria-controls="settings-google" aria-selected="true">Conexão</button>
+    <button type="button" role="tab" id="tab-agenda" aria-controls="agenda" aria-selected="false" tabindex="-1">Agenda</button>
+    <button type="button" role="tab" id="tab-gemini" aria-controls="settings-gemini" aria-selected="false" tabindex="-1">Gemini</button>
+    <button type="button" role="tab" id="tab-emails" aria-controls="emails" aria-selected="false" tabindex="-1">E-mails</button>
+  </div>
+<section class="settings-group" id="settings-google" role="tabpanel" aria-labelledby="tab-google" tabindex="0">
+<h2>Conexão com o Google</h2><p id="google-state" class="hint"></p><details id="google-setup"><summary>Primeira conexão: passo a passo</summary><ol class="setup-list"><li><button type="button" data-url="https://console.cloud.google.com/projectcreate" class="link-button">Crie um projeto no Google Cloud</button>.</li><li>Ative <button type="button" data-url="https://console.cloud.google.com/apis/library/gmail.googleapis.com" class="link-button">Gmail API</button> e <button type="button" data-url="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" class="link-button">Google Calendar API</button> nesse projeto.</li><li><button type="button" data-url="https://console.cloud.google.com/auth/overview" class="link-button">Configure a tela de consentimento</button> e adicione seu e-mail como usuário de teste.</li><li><button type="button" data-url="https://console.cloud.google.com/apis/credentials" class="link-button">Crie uma credencial OAuth</button> do tipo <strong>Aplicativo para computador</strong> e baixe o JSON.</li><li>Importe o JSON abaixo e clique em Conectar Google.</li></ol><p class="hint">Essa configuração é feita uma vez pelo responsável pelo aplicativo. A chave do Gemini não substitui a credencial de login Google.</p></details><div class="actions"><button type="button" id="import-google" class="quiet">Importar credencial JSON</button><button type="button" id="connect-google" class="primary">Conectar Google</button><button type="button" id="disconnect-google" class="link-button">Desconectar</button></div><label for="reminder">Avisar antes da reunião</label><select form="settings-form" id="reminder"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option></select>
 </section>
-<section class="settings-group" id="settings-focus" role="tabpanel" aria-labelledby="tab-focus" tabindex="0" hidden>
-<h2>Pomodoro e pausas</h2><p id="focus-status" class="focus-status" role="timer">Foco 25:00</p><div class="settings-fields"><div><label for="focus-work">Minutos de foco</label><input id="focus-work" type="number" min="1" max="120" value="25"></div><div><label for="focus-rest">Minutos de pausa</label><input id="focus-rest" type="number" min="1" max="60" value="5"></div></div><div class="actions"><button type="button" id="focus-start" class="primary">Iniciar Pomodoro</button><button type="button" id="focus-pause" class="quiet">Pausar</button><button type="button" id="focus-reset" class="quiet">Reiniciar</button></div><p class="hint">A pausa começa automaticamente após o foco. Para iniciar outro ciclo, pressione Iniciar.</p><label class="check"><input id="phrases-enabled" type="checkbox"> Receber frases durante o dia</label><label for="phrase-interval">Intervalo entre frases (minutos)</label><input id="phrase-interval" type="number" min="15" max="240" value="60"><p class="hint">Entre 8h e 20h, fora do Pomodoro e quando o chat estiver livre. No coffee time, ele também anima o café.</p><button type="button" id="coffee-preview" class="quiet">Ver animação de café</button>
-</section>
+<section id="agenda" class="settings-group" role="tabpanel" aria-labelledby="tab-agenda" tabindex="0" hidden><div class="section-head"><div><h2 id="agenda-heading">O que vem pela frente</h2><p>Próximos sete dias da agenda principal.</p></div><button id="refresh-events" class="quiet">Atualizar</button></div><div id="events" class="results"></div><p class="hint">Os lembretes funcionam com o Aluguito aberto, o computador ligado e as notificações do Windows permitidas.</p></section>
 <section class="settings-group" id="settings-gemini" role="tabpanel" aria-labelledby="tab-gemini" tabindex="0" hidden>
-<h2>Chave e modelo</h2><p id="key-state" class="hint"></p><label for="api-key">Sua chave de API</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Cole a chave aqui"><label for="model">Modelo</label><select id="model"><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option></select><button type="button" id="load-models" class="link-button">Carregar modelos da minha chave</button><div class="actions"><button type="button" id="get-key" class="link-button">Criar chave no Google</button><button type="button" id="test-key" class="quiet">Testar conexão</button><button type="button" id="remove-key" class="link-button">Remover chave</button></div><label class="check"><input id="web-default" type="checkbox" checked> Permitir pesquisa na web</label><label class="check"><input id="include-images" type="checkbox" checked> Incluir imagens da pesquisa, quando disponíveis</label><p class="hint">Pesquisa e imagens dependem do modelo e das cotas do seu projeto Google. No plano gratuito, evite informações confidenciais.</p>
+<h2>Chave e modelo</h2><p id="key-state" class="hint"></p><label for="api-key">Sua chave de API</label><input form="settings-form" id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Cole a chave aqui"><label for="model">Modelo</label><select form="settings-form" id="model"><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option></select><button type="button" id="load-models" class="link-button">Carregar modelos da minha chave</button><div class="actions"><button type="button" id="get-key" class="link-button">Criar chave no Google</button><button type="button" id="test-key" class="quiet">Testar conexão</button><button type="button" id="remove-key" class="link-button">Remover chave</button></div><label class="check"><input form="settings-form" id="web-default" type="checkbox" checked> Permitir pesquisa na web</label><label class="check"><input form="settings-form" id="include-images" type="checkbox" checked> Incluir imagens da pesquisa, quando disponíveis</label><p class="hint">Pesquisa e imagens dependem do modelo e das cotas do seu projeto Google. No plano gratuito, evite informações confidenciais.</p>
 </section>
-<section class="settings-group" id="settings-google" role="tabpanel" aria-labelledby="tab-google" tabindex="0" hidden>
-<h2>Agenda e Gmail</h2><p id="google-state" class="hint"></p><details id="google-setup"><summary>Primeira conexão: passo a passo</summary><ol class="setup-list"><li><button type="button" data-url="https://console.cloud.google.com/projectcreate" class="link-button">Crie um projeto no Google Cloud</button>.</li><li>Ative <button type="button" data-url="https://console.cloud.google.com/apis/library/gmail.googleapis.com" class="link-button">Gmail API</button> e <button type="button" data-url="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" class="link-button">Google Calendar API</button> nesse projeto.</li><li><button type="button" data-url="https://console.cloud.google.com/auth/overview" class="link-button">Configure a tela de consentimento</button> e adicione seu e-mail como usuário de teste.</li><li><button type="button" data-url="https://console.cloud.google.com/apis/credentials" class="link-button">Crie uma credencial OAuth</button> do tipo <strong>Aplicativo para computador</strong> e baixe o JSON.</li><li>Importe o JSON abaixo e clique em Conectar Google.</li></ol><p class="hint">Essa configuração é feita uma vez pelo responsável pelo aplicativo. A chave do Gemini não substitui a credencial de login Google.</p></details><div class="actions"><button type="button" id="import-google" class="quiet">Importar credencial JSON</button><button type="button" id="connect-google" class="primary">Conectar Google</button><button type="button" id="disconnect-google" class="link-button">Desconectar</button></div><label for="reminder">Avisar antes da reunião</label><select id="reminder"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option></select>
+<section id="emails" class="settings-group" role="tabpanel" aria-labelledby="tab-emails" tabindex="0" hidden><h2 id="emails-heading">Sua caixa de entrada</h2><p class="intro">Consulte assuntos e prévias de até 15 mensagens.</p><form id="email-search" class="search"><label class="sr-only" for="query">Buscar no Gmail</label><input id="query" value="in:inbox" maxlength="500"><button type="submit" class="primary">Buscar</button></form><div id="emails-list" class="results"></div><p class="hint">Resumir prévia envia somente o assunto, o remetente e a prévia ao Gemini, com pesquisa web desativada.</p></section>
 </section>
 <section class="settings-group" id="settings-mcp" role="tabpanel" aria-labelledby="tab-mcp" tabindex="0" hidden>
-<h2>Seus servidores MCP</h2><label for="work-deadline">Avisos de prazo no trabalho</label><select id="work-deadline"><option value="0">No dia do prazo</option><option value="1">Até 1 dia antes</option><option value="3">Até 3 dias antes</option><option value="7">Até 7 dias antes</option><option value="-1">Desativados</option></select><label for="mcp-profiles">Editar conexão</label><select id="mcp-profiles"></select><div class="actions"><button type="button" id="add-mcp" class="quiet">Adicionar MCP</button><button type="button" id="remove-mcp" class="link-button">Excluir cadastro</button></div><label for="mcp-name">Nome do MCP</label><input id="mcp-name" maxlength="60" placeholder="Tarefas, Posts, Financeiro…"><p id="mcp-state" class="hint">Não configurado.</p><label for="mcp-url">Endereço do servidor</label><input id="mcp-url" type="url" placeholder="https://seu-projeto.com/mcp" autocomplete="off"><details><summary>Configuração avançada</summary><label for="mcp-transport">Tipo de conexão</label><select id="mcp-transport"><option value="http">HTTP (padrão)</option><option value="sse">Compatibilidade SSE</option></select><label for="mcp-client-id">ID do aplicativo OAuth (se exigido pelo servidor)</label><input id="mcp-client-id" autocomplete="off"><p class="hint">Retorno de autorização: http://127.0.0.1:35691/mcp/oauth/callback. Usa OAuth com PKCE e, quando disponível, cadastro automático do aplicativo.</p></details><div class="actions"><button type="button" id="connect-mcp" class="primary">Conectar MCP</button><button type="button" id="refresh-mcp" class="quiet">Atualizar permissões</button><button type="button" id="disconnect-mcp" class="quiet">Desconectar MCP</button></div><p class="hint">Selecione as ferramentas permitidas e salve. O Aluguito pede confirmação antes de cada alteração. Atualizar permissões recarrega as ferramentas do servidor.</p><div id="mcp-tool-list"></div>
+<h2>Seus servidores MCP</h2><label for="work-deadline">Avisos de prazo no trabalho</label><select form="settings-form" id="work-deadline"><option value="0">No dia do prazo</option><option value="1">Até 1 dia antes</option><option value="3">Até 3 dias antes</option><option value="7">Até 7 dias antes</option><option value="-1">Desativados</option></select><label for="mcp-profiles">Editar conexão</label><select form="settings-form" id="mcp-profiles"></select><div class="actions"><button type="button" id="add-mcp" class="quiet">Adicionar MCP</button><button type="button" id="remove-mcp" class="link-button">Excluir cadastro</button></div><label for="mcp-name">Nome do MCP</label><input form="settings-form" id="mcp-name" maxlength="60" placeholder="Tarefas, Posts, Financeiro…"><p id="mcp-state" class="hint">Não configurado.</p><label for="mcp-url">Endereço do servidor</label><input form="settings-form" id="mcp-url" type="url" placeholder="https://seu-projeto.com/mcp" autocomplete="off"><details><summary>Configuração avançada</summary><label for="mcp-transport">Tipo de conexão</label><select form="settings-form" id="mcp-transport"><option value="http">HTTP (padrão)</option><option value="sse">Compatibilidade SSE</option></select><label for="mcp-client-id">ID do aplicativo OAuth (se exigido pelo servidor)</label><input form="settings-form" id="mcp-client-id" autocomplete="off"><p class="hint">Retorno de autorização: http://127.0.0.1:35691/mcp/oauth/callback. Usa OAuth com PKCE e, quando disponível, cadastro automático do aplicativo.</p></details><div class="actions"><button type="button" id="connect-mcp" class="primary">Conectar MCP</button><button type="button" id="refresh-mcp" class="quiet">Atualizar permissões</button><button type="button" id="disconnect-mcp" class="quiet">Desconectar MCP</button></div><p class="hint">Selecione as ferramentas permitidas e salve. O Aluguito pede confirmação antes de cada alteração. Atualizar permissões recarrega as ferramentas do servidor.</p><div id="mcp-tool-list"></div>
+</section>
+<section class="settings-category" id="settings-my-data" role="tabpanel" aria-labelledby="tab-my-data" hidden>
+  <div class="settings-subtabs" role="tablist" aria-label="Meus dados">
+    <button type="button" role="tab" id="tab-memory" aria-controls="memory" aria-selected="true">Memória</button>
+    <button type="button" role="tab" id="tab-focus" aria-controls="settings-focus" aria-selected="false" tabindex="-1">Pomodoro</button>
+  </div>
+<section id="memory" class="settings-group" role="tabpanel" aria-labelledby="tab-memory" tabindex="0"><h2 id="memory-heading">O que você quer que eu lembre?</h2><p>Guarde preferências, contexto de projetos e informações para eu considerar nas respostas.</p><form id="memory-form"><label for="memory-preferred-name">Como posso chamar você?</label><input id="memory-preferred-name" maxlength="80" autocomplete="nickname" placeholder="Seu nome"><p class="hint">O Aluguito usa o nome na saudação e nas conversas sem pesquisa web ou MCP.</p><label class="check"><input type="checkbox" id="memory-enabled"> Usar esta memória nas respostas</label><label for="memory-text">Sua memória em Markdown</label><textarea id="memory-text" rows="12" maxlength="30000" placeholder="# Sobre mim&#10;&#10;## Preferências&#10;- Prefiro respostas objetivas.&#10;&#10;## Projetos&#10;"></textarea><p id="memory-state" class="hint"></p><p class="hint">Quando ativado, o conteúdo é enviado ao Gemini nas perguntas. O arquivo importado vira uma cópia editável aqui. Até 30 mil caracteres.</p><div class="actions"><button type="submit" class="primary">Salvar memória</button><button type="button" id="import-memory" class="quiet">Importar MD</button><button type="button" id="export-memory" class="quiet">Exportar MD</button><button type="button" id="clear-memory" class="link-button">Apagar memória</button></div></form></section>
+<section class="settings-group" id="settings-focus" role="tabpanel" aria-labelledby="tab-focus" tabindex="0" hidden>
+<h2>Pomodoro e pausas</h2><p id="focus-status" class="focus-status" role="timer">Foco 25:00</p><div class="settings-fields"><div><label for="focus-work">Minutos de foco</label><input form="settings-form" id="focus-work" type="number" min="1" max="120" value="25"></div><div><label for="focus-rest">Minutos de pausa</label><input form="settings-form" id="focus-rest" type="number" min="1" max="60" value="5"></div></div><div class="actions"><button type="button" id="focus-start" class="primary">Iniciar Pomodoro</button><button type="button" id="focus-pause" class="quiet">Pausar</button><button type="button" id="focus-reset" class="quiet">Reiniciar</button></div><p class="hint">A pausa começa automaticamente após o foco. Para iniciar outro ciclo, pressione Iniciar.</p><label class="check"><input form="settings-form" id="phrases-enabled" type="checkbox"> Receber frases durante o dia</label><label for="phrase-interval">Intervalo entre frases (minutos)</label><input form="settings-form" id="phrase-interval" type="number" min="15" max="240" value="60"><p class="hint">Entre 8h e 20h, fora do Pomodoro e quando o chat estiver livre. No coffee time, ele também anima o café.</p><button type="button" id="coffee-preview" class="quiet">Ver animação de café</button>
+</section>
+</section>
+<section class="settings-group" id="settings-appearance" role="tabpanel" aria-labelledby="tab-appearance" tabindex="0" hidden>
+<h2>Mascote</h2><label for="skin-select">Visual do mascote</label><select form="settings-form" id="skin-select"></select>
+<label class="check"><input form="settings-form" id="ambient-motion" type="checkbox" checked> Movimentos espontâneos</label>
+<p class="hint">Entre 8h e 20h, o Aluguito pode andar, pular ou voar no lugar enquanto a conversa está recolhida e o Pomodoro está em pausa.</p>
+<details><summary>Importar outra skin</summary><label for="skin-name">Nome da nova skin</label><input form="settings-form" id="skin-name" maxlength="60" placeholder="Nome da skin"><div class="actions"><button type="button" id="import-skin" class="quiet">Importar PNG ou WebP</button></div></details>
 </section>
 <section class="settings-group" id="settings-system" role="tabpanel" aria-labelledby="tab-system" tabindex="0" hidden>
-<h2>Windows e dados</h2><label class="check"><input type="checkbox" id="start-login"> Abrir ao entrar no Windows</label>
+<h2>Windows e dados</h2><label class="check"><input form="settings-form" type="checkbox" id="start-login"> Abrir ao entrar no Windows</label>
 <div class="actions"><button type="button" id="clear-history" class="link-button">Limpar conversa atual</button></div>
 <p class="hint">As conversas e credenciais ficam protegidas neste computador.</p>
 <div id="update-controls" hidden>
@@ -121,10 +148,6 @@
 </div>
 <div class="brand-signature"><img src="../assets/alugoideias.png" alt="Alugo Ideias"><span id="version">Aluguito</span></div>
 </section>
-</form>
-<section id="agenda" class="settings-group" role="tabpanel" aria-labelledby="tab-agenda" tabindex="0" hidden><div class="section-head"><div><h2 id="agenda-heading">O que vem pela frente</h2><p>Próximos sete dias da agenda principal.</p></div><button id="refresh-events" class="quiet">Atualizar</button></div><div id="events" class="results"></div><p class="hint">Os lembretes funcionam com o Aluguito aberto, o computador ligado e as notificações do Windows permitidas.</p></section>
-<section id="emails" class="settings-group" role="tabpanel" aria-labelledby="tab-emails" tabindex="0" hidden><h2 id="emails-heading">Sua caixa de entrada</h2><p class="intro">Consulte assuntos e prévias de até 15 mensagens.</p><form id="email-search" class="search"><label class="sr-only" for="query">Buscar no Gmail</label><input id="query" value="in:inbox" maxlength="500"><button type="submit" class="primary">Buscar</button></form><div id="emails-list" class="results"></div><p class="hint">Resumir prévia envia somente o assunto, o remetente e a prévia ao Gemini, com pesquisa web desativada.</p></section>
-<section id="memory" class="settings-group" role="tabpanel" aria-labelledby="tab-memory" tabindex="0" hidden><h2 id="memory-heading">O que você quer que eu lembre?</h2><p>Guarde preferências, contexto de projetos e informações para eu considerar nas respostas.</p><form id="memory-form"><label for="memory-preferred-name">Como posso chamar você?</label><input id="memory-preferred-name" maxlength="80" autocomplete="nickname" placeholder="Seu nome"><p class="hint">O Aluguito usa o nome na saudação e nas conversas sem pesquisa web ou MCP.</p><label class="check"><input type="checkbox" id="memory-enabled"> Usar esta memória nas respostas</label><label for="memory-text">Sua memória em Markdown</label><textarea id="memory-text" rows="12" maxlength="30000" placeholder="# Sobre mim&#10;&#10;## Preferências&#10;- Prefiro respostas objetivas.&#10;&#10;## Projetos&#10;"></textarea><p id="memory-state" class="hint"></p><p class="hint">Quando ativado, o conteúdo é enviado ao Gemini nas perguntas. O arquivo importado vira uma cópia editável aqui. Até 30 mil caracteres.</p><div class="actions"><button type="submit" class="primary">Salvar memória</button><button type="button" id="import-memory" class="quiet">Importar MD</button><button type="button" id="export-memory" class="quiet">Exportar MD</button><button type="button" id="clear-memory" class="link-button">Apagar memória</button></div></form></section>
 </div>
 <footer class="settings-footer"><button type="submit" form="settings-form" class="primary">Salvar ajustes</button></footer>
 </div>
@@ -132,5 +155,5 @@
 </div>
 </div>
 </section>
-<footer class="companion"><button id="talk" class="pet-button" aria-label="Abrir a conversa do Aluguito"><span class="pet-frame"><span class="pet-art"><img id="sprite" src="../assets/aluguito.png" alt="Aluguito"><canvas id="pet-animation" width="192" height="208" aria-hidden="true" hidden></canvas></span></span></button><div class="companion-actions" role="group" aria-label="Ações do Aluguito"><button id="bubble">Vamos conversar?</button><button id="focus-quick" title="Iniciar Pomodoro" aria-label="Iniciar Pomodoro"><span aria-hidden="true">🍅</span></button><button id="pet-menu" title="Tamanho, minimizar e reposicionar" aria-label="Opções do Aluguito">•••</button></div></footer>
+<footer class="companion"><button id="talk" class="pet-button" title="Abrir conversa" aria-label="Abrir conversa"><span class="pet-frame"><span class="pet-art"><img id="sprite" src="../assets/aluguito.png" alt="Aluguito"><canvas id="pet-animation" width="192" height="208" aria-hidden="true" hidden></canvas></span></span></button><div id="pet-toast" role="status" aria-atomic="true"></div><div class="companion-actions" role="group" aria-label="Ações do Aluguito"><button id="focus-quick" title="Iniciar Pomodoro" aria-label="Iniciar Pomodoro"><img class="pet-apple" src="../assets/pomodoro-apple.png" width="22" height="22" alt=""></button><button id="pet-menu" title="Opções do Aluguito" aria-label="Opções do Aluguito"><span class="pet-dots" aria-hidden="true"></span></button></div></footer>
 </div><script src="../assets/vendor/marked.js"></script><script src="../assets/vendor/purify.js"></script><script src="rich.js"></script><script src="renderer.js"></script><script src="pet-animation.js"></script><script src="companion.js"></script></body></html>

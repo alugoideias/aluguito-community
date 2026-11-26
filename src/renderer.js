@@ -2,37 +2,59 @@ const $=id=>document.getElementById(id),api=window.aluguito;
 let memoryDirty=false,queryMcpId='',state,busy=false,loadedAgenda=false,loadedEmails=false,privateMessage=false,webChoice=false;
 const settingsTrigger = $('open-settings');
 let settingsReturnFocus;
-const accountCategories = ['agenda', 'emails', 'memory'];
-const settingsTabs = [...document.querySelectorAll('.settings-tabs [role="tab"]')];
-function selectSettings(button, focus = false) {
- for (const tab of settingsTabs) {
+const settingsTabs = document.querySelector('.settings-tabs');
+const settingsContent = document.querySelector('.settings-content');
+const settingsFooter = document.querySelector('.settings-footer');
+const settingsForm = $('settings-form');
+const separateSettingsViews = ['agenda', 'emails', 'memory'];
+
+function activateSettingsTab(button) {
+ for (const tab of button.parentElement.children) {
   const selected = tab === button;
   tab.setAttribute('aria-selected', String(selected));
   tab.tabIndex = selected ? 0 : -1;
   $(tab.getAttribute('aria-controls')).hidden = !selected;
  }
- const category = button.id.slice(4);
- document.querySelector('.settings-footer').hidden = accountCategories.includes(category);
- document.querySelector('.settings-content').scrollTop = 0;
+}
+
+function selectSettings(button, focus = false) {
+ const parentPanel = button.closest('.settings-category');
+ if (parentPanel) activateSettingsTab($(parentPanel.getAttribute('aria-labelledby')));
+ activateSettingsTab(button);
+ const selectedSubtab = $(button.getAttribute('aria-controls')).querySelector('[role="tab"][aria-selected="true"]');
+ const category = (selectedSubtab || button).id.slice(4);
+ settingsFooter.hidden = separateSettingsViews.includes(category);
+ settingsContent.scrollTop = 0;
  if (state && category === 'agenda' && !loadedAgenda) loadEvents();
  if (state && category === 'emails' && !loadedEmails) loadEmails();
  if (focus) button.focus();
 }
-for (const tab of settingsTabs) tab.addEventListener('click', () => selectSettings(tab));
-document.querySelector('.settings-tabs').addEventListener('keydown', event => {
- const index = settingsTabs.indexOf(event.target);
- const last = settingsTabs.length - 1;
- const next = {ArrowLeft: (index + last) % settingsTabs.length,
-  ArrowRight: (index + 1) % settingsTabs.length, ArrowUp: (index + last) % settingsTabs.length,
-  ArrowDown: (index + 1) % settingsTabs.length, Home: 0, End: last}[event.key];
- if (index === -1 || next === undefined) return;
- event.preventDefault();
- selectSettings(settingsTabs[next], true);
-});
-$('settings-form').addEventListener('invalid', event => {
- const group = event.target.closest('.settings-group');
- if (group?.hidden) selectSettings($(group.getAttribute('aria-labelledby')));
+
+for (const list of $('settings-dialog').querySelectorAll('[role="tablist"]')) {
+ const tabs = [...list.children];
+ for (const tab of tabs) tab.addEventListener('click', () => selectSettings(tab));
+ list.addEventListener('keydown', event => {
+  const index = tabs.indexOf(event.target);
+  const last = tabs.length - 1;
+  const next = {ArrowLeft: (index + last) % tabs.length,
+   ArrowRight: (index + 1) % tabs.length, ArrowUp: (index + last) % tabs.length,
+   ArrowDown: (index + 1) % tabs.length, Home: 0, End: last}[event.key];
+  if (index === -1 || next === undefined) return;
+  event.preventDefault();
+  selectSettings(tabs[next], true);
+ });
+}
+
+settingsContent.addEventListener('invalid', event => {
+ const control = event.target;
+ if (control.form !== settingsForm || !control.closest('[hidden]')) return;
+ const firstInvalid = [...settingsForm.elements].find(field => field.willValidate && !field.validity.valid);
+ if (control === firstInvalid) {
+  const group = control.closest('.settings-group');
+  selectSettings($(group.getAttribute('aria-labelledby')));
+ }
 }, true);
+
 function openSettings(category) {
  const opening = $('settings').hidden;
  if (opening) {
@@ -45,8 +67,7 @@ function openSettings(category) {
   syncOverlayInteraction();
   maybeAskName();
  }
- const tab = category ? $('tab-' + category) : opening && !state?.hasKey ? $('tab-gemini') :
-  settingsTabs.find(button => button.getAttribute('aria-selected') === 'true');
+ const tab = category ? $('tab-' + category) : settingsTabs.querySelector('[aria-selected="true"]');
  selectSettings(tab, true);
 }
 function closeSettings(restoreFocus = true) {
@@ -130,7 +151,11 @@ function renderUpdate(update) {
  const checking = ['checking','downloading','installing'].includes(phase);
  $('check-update').disabled = checking;
  $('check-update').hidden = ['ready','installing'].includes(phase);
- $('install-update').hidden = phase !== 'ready';
+ const ready = phase === 'ready';
+ $('install-update').hidden = !ready;
+ $('daily-update').hidden = phase === 'disabled';
+ $('daily-check-update').hidden = phase !== 'error';
+ $('daily-install-update').hidden = !ready;
  const messages = {
   idle: 'O Aluguito verifica automaticamente se há uma nova versão.',
   checking: 'Verificando se há uma nova versão…',
@@ -141,18 +166,22 @@ function renderUpdate(update) {
   installing: 'Reiniciando para instalar…',
   error: 'Não foi possível baixar a atualização. Confira a conexão e tente novamente.'
  };
- $('update-state').textContent = messages[phase] || '';
+ const text = messages[phase] || '';
+ $('update-state').textContent = text;
+ $('daily-update-state').textContent = text;
 }
-$('check-update').onclick = () => action(async () => renderUpdate(await api.call('check-update')));
-$('install-update').onclick = () => {
+const checkUpdate = () => action(async () => renderUpdate(await api.call('check-update')));
+function installUpdate() {
  if (confirm('O Aluguito vai reiniciar para instalar a atualização. Deseja continuar?')) {
   return action(async () => renderUpdate(await api.call('install-update')));
  }
-};
+}
+$('check-update').onclick = $('daily-check-update').onclick = checkUpdate;
+$('install-update').onclick = $('daily-install-update').onclick = installUpdate;
 api.on('update-status', renderUpdate);
 
 function navigate(tab) {
- if (accountCategories.includes(tab)) return openSettings(tab);
+ if (separateSettingsViews.includes(tab)) return openSettings(tab);
  if (tab === 'settings') return openSettings();
  if (tab === 'system') return openSettings('system');
  if (tab === 'daily' || tab === 'personal') {
@@ -305,7 +334,7 @@ function renderPersonal(items) {
  const list = $('personal-list');
  list.replaceChildren();
  if (!items.length) {
-  list.append(dailyText('li', 'Você ainda não tem lembretes pessoais.', 'hint'));
+  list.append(dailyText('li', 'Nenhuma tarefa pessoal cadastrada.', 'hint'));
   return;
  }
  const sorted = [...items].sort((a,b) => Number(Boolean(b.notified))-Number(Boolean(a.notified)) ||
@@ -325,20 +354,22 @@ function renderPersonal(items) {
   if (reminder.notified) {
    actions.append(button('Feito', () => perform('done')), button('Adiar 10 min', () => perform('snooze')));
   }
-  actions.append(button('Excluir', () => {if (confirm('Excluir este lembrete pessoal?')) return perform('remove');}));
+  actions.append(button('Excluir', () => {if (confirm('Excluir esta tarefa pessoal?')) return perform('remove');}));
   row.append(actions);
   list.append(row);
  }
 }
-async function showPersonal(draft) {
- closeDaily();
- setHistoryOpen(false);
- const panel = $('personal-reminders');
- panel.hidden = false;
- $('messages').hidden = true;
- $('message').placeholder = 'Ex.: Me lembre de bater o ponto às 8h';
- $('welcome').hidden = true;
- $('open-personal').setAttribute('aria-expanded', 'true');
+function showPersonalList(focus = false) {
+ $('personal-edit').hidden = true;
+ $('personal-list-view').hidden = false;
+ if (focus) $('personal-add').focus();
+}
+
+function openPersonalForm(draft) {
+ if ($('personal-save').disabled) return;
+ $('personal-form').reset();
+ parsedPersonalDue = null;
+ setPersonalStatus('');
  if (draft) {
   const parts = personalDateParts(draft.due);
   parsedPersonalDue = draft.due;
@@ -347,15 +378,37 @@ async function showPersonal(draft) {
   $('personal-date').value = parts.date;
   $('personal-time').value = draft.time || parts.time;
   for (const input of personalDays) input.checked = draft.days.includes(Number(input.value));
-  setPersonalStatus(draft.warning || 'Confira os dados do pedido e salve o lembrete.');
+  setPersonalStatus(draft.warning || 'Confira os dados do pedido e salve a tarefa.');
  }
  syncPersonalForm();
- $('personal-heading').focus();
+ $('personal-list-view').hidden = true;
+ $('personal-edit').hidden = false;
+ $('personal-title').focus();
+}
+
+async function showPersonal(draft) {
+ closeDaily();
+ setHistoryOpen(false);
+ const panel = $('personal-reminders');
+ const wasHidden = panel.hidden;
+ panel.hidden = false;
+ $('messages').hidden = true;
+ $('message').placeholder = 'Ex.: Me lembre de bater o ponto às 8h';
+ $('welcome').hidden = true;
+ $('open-personal').setAttribute('aria-expanded', 'true');
+ setPersonalStatus('');
+ showPersonalList();
+ if (wasHidden) {
+  $('personal-list').replaceChildren(dailyText('li', 'Carregando tarefas…', 'hint'));
+ }
+ if (draft) openPersonalForm(draft);
+ else $('personal-heading').focus();
  panel.scrollIntoView({block:'start'});
  try {
   renderPersonal(await api.call('personal-list'));
  } catch (error) {
-  setPersonalStatus(error.message);
+  $('personal-list').replaceChildren(dailyText('li', 'Não foi possível carregar as tarefas.', 'hint'));
+  if (!draft) setPersonalStatus(error.message);
  }
 }
 function closePersonal(restoreFocus = false) {
@@ -369,6 +422,11 @@ function closePersonal(restoreFocus = false) {
 }
 $('open-personal').onclick = () => showPersonal();
 $('close-personal').onclick = () => closePersonal(true);
+$('personal-add').onclick = () => openPersonalForm();
+$('personal-cancel').onclick = () => {
+ setPersonalStatus('');
+ showPersonalList(true);
+};
 $('personal-repeat').onchange = syncPersonalForm;
 for (const id of ['personal-date','personal-time']) $(id).oninput = () => { parsedPersonalDue = null; };
 $('personal-form').onsubmit = async event => {
@@ -384,17 +442,17 @@ $('personal-form').onsubmit = async event => {
  }
  const date = $('personal-date').value;
  const due = parsedPersonalDue ?? new Date(date + 'T' + time).getTime();
- submit.disabled = true;
+ submit.disabled = $('personal-cancel').disabled = true;
  try {
   renderPersonal(await api.call('personal-create', {title:$('personal-title').value, days, time, due}));
-  $('personal-form').reset();
-  syncPersonalForm();
-  parsedPersonalDue = null;
-  setPersonalStatus('Lembrete pessoal salvo.');
+  if (!$('personal-reminders').hidden) {
+   showPersonalList(!$('personal-edit').hidden && !$('chat').inert);
+   setPersonalStatus('Tarefa pessoal salva.');
+  }
  } catch (error) {
   setPersonalStatus(error.message);
  } finally {
-  submit.disabled = false;
+  submit.disabled = $('personal-cancel').disabled = false;
  }
 };
 api.on('personal-update', items => { if (!$('personal-reminders').hidden) renderPersonal(items); });
@@ -406,7 +464,7 @@ $('chat-form').onsubmit=async e=>{
   checkingPersonal = true;
   try {
    const draft = await api.call('personal-parse', text);
-   if (draft || /^lembretes pessoais[?!.]*$/iu.test(text)) {
+   if (draft || /^(?:lembretes pessoais|tarefas pessoais)[?!.]*$/iu.test(text)) {
     $('message').value = '';
     return showPersonal(draft);
    }
@@ -423,7 +481,7 @@ $('chat-form').onsubmit=async e=>{
  }
 
  if (!$('personal-reminders').hidden) {
-  setPersonalStatus('Para cadastrar pelo chat, comece com “Me lembre” ou “Me avise”. Você também pode preencher o formulário acima.');
+  setPersonalStatus('Para cadastrar pelo chat, comece com “Me lembre” ou “Me avise”.');
   return;
  }
  if(!state.hasKey&&!state.googleConnected){openSettings('gemini');notice('Cole sua chave e salve os ajustes para começar.');return;}
@@ -578,7 +636,7 @@ $('name-intro-form').onsubmit = event => {
 };
 $('skip-name-intro').onclick = () => action(() => finishNameIntro(''));
 api.on('appearance', value => { if (!value.expanded) { closeSettings(false); closeDaily(); closePersonal(); } });
-api.on('navigate',navigate);api.on('reminder',v=>notice(`${v.title} começa às ${v.time}. Confira em Ajustes → Agenda.`));api.on('retry',text=>notice(text));
+api.on('navigate',navigate);api.on('reminder',v=>notice(`${v.title} começa às ${v.time}. Confira em Ajustes → Conta Google → Agenda.`));api.on('retry',text=>notice(text));
 const ready=action(async()=>{renderState(await api.call('status'));renderHistory();maybeAskName();if(state.backgroundError)notice(state.backgroundError,true);});
 window.runSmoke=async()=>{
  await ready;renderState(await api.call('status'));
@@ -591,22 +649,38 @@ window.runSmoke=async()=>{
  await $('name-intro-form').onsubmit({preventDefault(){}});
  const nameIntroWorks = introShown && state.namePromptSeen && state.memory.preferredName === 'Alex' &&
   $('name-intro').hidden && $('welcome-personal').textContent.includes('Alex');
+ openSettings();
+ const firstSection = $('tab-google-account').getAttribute('aria-selected') === 'true' &&
+  $('settings-google').checkVisibility();
+ const sectionOrder = [...settingsTabs.children].map(button => button.textContent).join(',');
  navigate('agenda');
- const agendaNested = !$('settings').hidden && !$('agenda').hidden && $('agenda').closest('#settings') &&
+ const agendaNested = $('agenda').checkVisibility() && $('agenda').closest('#settings-google-account') &&
   $('tab-agenda').getAttribute('aria-selected') === 'true';
  $('tab-emails').click();
- const nestedSettings = Boolean(agendaNested && !$('emails').hidden && $('agenda').hidden &&
-  $('emails').closest('#settings') && $('memory').closest('#settings') &&
-  document.querySelector('.settings-footer').hidden);
- navigate('settings');const keyNotExposed=$('api-key').value===''&&!Object.hasOwn(state,'key');const savedKeyVisible=state.hasKey&&$('api-key').placeholder.includes('Chave salva');
+ const emailNested = $('emails').checkVisibility() && !$('agenda').checkVisibility() && settingsFooter.hidden;
+ openSettings('gemini');
+ const geminiNested = $('settings-gemini').checkVisibility() &&
+  $('settings-gemini').closest('#settings-google-account') && !settingsFooter.hidden;
+ const nestedSettings = Boolean(firstSection && agendaNested && emailNested && geminiNested &&
+  sectionOrder === 'Conta Google,Integrações,Meus dados,Aparência,Sobre');
+ const keyNotExposed = $('api-key').value === '' && !Object.hasOwn(state,'key');
+ const savedKeyVisible = state.hasKey && $('api-key').placeholder.includes('Chave salva');
  openSettings('appearance');
  $('ambient-motion').checked = false;
- $('tab-appearance').dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}));
- const categoryKeyboard = document.activeElement === $('tab-focus') &&
-  $('settings-appearance').hidden && !$('settings-focus').hidden &&
-  document.querySelectorAll('.settings-group:not([hidden])').length === 1;
+ navigate('memory');
+ const memoryNested = $('memory').checkVisibility() && $('memory').closest('#settings-my-data') &&
+  $('tab-my-data').getAttribute('aria-selected') === 'true' && settingsFooter.hidden;
+ $('tab-memory').dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}));
+ const categoryKeyboard = memoryNested && document.activeElement === $('tab-focus') &&
+  $('settings-appearance').hidden && $('settings-focus').checkVisibility() &&
+  [...document.querySelectorAll('.settings-group')].filter(group => group.checkVisibility()).length === 1;
+ $('focus-work').value = '121';
+ openSettings('system');
+ const formRouting = !settingsForm.reportValidity() && $('settings-focus').checkVisibility() &&
+  document.activeElement === $('focus-work');
+ $('focus-work').value = String(state.focus.config.work);
  await saveSettings();
- const settingsCategories = categoryKeyboard && !(await api.call('status')).ambientMotion;
+ const settingsCategories = categoryKeyboard && formRouting && !(await api.call('status')).ambientMotion;
  navigate('chat');
  $('message').value = 'Rascunho da conversa';
  settingsTrigger.focus();
@@ -627,7 +701,7 @@ window.runSmoke=async()=>{
  const imagesSafe=AluguitoRich.webUrl('file:///C:/secret')===null&&AluguitoRich.webUrl('https://127.0.0.1/secret')===null&&AluguitoRich.images([{url:'javascript:alert(1)',source:'https://example.com'}]).children.length===0;
  const original=state.activeConversationId;
  navigate('memory');$('memory-text').value='# Teste de memória\nPrefiro respostas curtas.';$('memory-enabled').checked=true;$('memory-text').dispatchEvent(new Event('input'));await $('memory-form').onsubmit({preventDefault(){}});const memoryWorks=state.memory.enabled&&state.memory.text.includes('respostas curtas')&&state.memory.preferredName==='Alex'&&!memoryDirty;await api.call('save-memory',{text:'',enabled:false,name:'Minha memória.md'});
- navigate('settings');const first=state.mcpSettingsId;await $('add-mcp').onclick();const second=state.mcpSettingsId;$('mcp-name').value='Posts';$('mcp-url').value='https://example.com/mcp';$('mcp-profiles').value=first;await $('mcp-profiles').onchange();const multipleMcpWorks=state.mcpProfiles.length===2&&state.mcpProfiles.some(p=>p.name==='Posts')&&state.mcpUrl==='';await api.call('remove-mcp',second);
+ openSettings('mcp');const first=state.mcpSettingsId;await $('add-mcp').onclick();const second=state.mcpSettingsId;$('mcp-name').value='Posts';$('mcp-url').value='https://example.com/mcp';$('mcp-profiles').value=first;await $('mcp-profiles').onchange();const multipleMcpWorks=state.mcpProfiles.length===2&&state.mcpProfiles.some(p=>p.name==='Posts')&&state.mcpUrl==='';await api.call('remove-mcp',second);
  await api.call('new-conversation');let next=await api.call('status');const added=next.activeConversationId;await api.call('rename-conversation',added,'Teste de histórico');await api.call('select-conversation',original);next=await api.call('status');const historyWorks=next.conversations.some(c=>c.id===added&&c.title==='Teste de histórico')&&next.activeConversationId===original;renderState(next);renderHistory();navigate('chat');
  $('history-toggle').click();
  const shown = !$('history-drawer').hidden && $('chat').inert && !$('history-backdrop').hidden &&

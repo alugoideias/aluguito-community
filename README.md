@@ -49,6 +49,6 @@ Guarde a chave privada e credenciais fora do código. A conta Windows que criou 
 2. Rode `npm run dist:github`. Confira o conteúdo em `dist/github/<versão>/`. Publique numa mesma Release o instalador, `latest.yml`, o arquivo `.blockmap` e, para instalações do piloto, o arquivo `.exe.sig`.
 3. Com o GitHub CLI autenticado, `npm run release:github` gera e publica o conjunto na tag já existente. Mantenha os arquivos das Releases anteriores disponíveis para atualizações diferenciais.
 
-O time instala a primeira versão uma vez. As próximas aparecem em **Ajustes → Windows e dados → Buscar atualização**.
+O instalador com atualizações verifica o canal ao abrir o Aluguito, inclusive ao iniciar com o Windows. **Meu dia** mostra o status e oferece **Reiniciar e instalar** quando a atualização estiver pronta. Você também pode buscar manualmente em **Ajustes → Sobre**.
 
 Para usar outro repositório em um fork, configure `ALUGUITO_UPDATE_GITHUB` como `dono/repositorio` e rode `npm run dist:installer` com a identidade de assinatura do seu projeto. Um canal HTTPS genérico pode usar `ALUGUITO_UPDATE_URL` e um certificado de assinatura de código.

@@ -143,7 +143,7 @@ function maybeAnimate(now) {
  nextAmbientAt = +now + (30 + Math.random() * 30) * 60000;
 }
 function petMenu(){Menu.buildFromTemplate([
- {label:expanded?'Recolher conversa':'Vamos conversar',click:()=>expanded?collapse():showPanel('chat')},
+ {label:expanded?'Recolher conversa':'Abrir conversa',click:()=>expanded?collapse():showPanel('chat')},
  {label:'Posição da conversa',submenu:[['left','À esquerda do Aluguito'],['right','À direita do Aluguito'],['above','Acima do Aluguito']].map(([position,label])=>({label,type:'radio',checked:read().conversationPosition===position,click:()=>setConversation(position)}))},
  {label:'Tamanho da conversa',submenu:[['Compacta',420,500],['Padrão',520,640],['Ampla',680,760]].map(([label,width,height])=>({label,click:()=>setConversation(null,{width,height})}))},
  {label:'Tamanho do Aluguito',submenu:[[.6,'Pequeno'],[.8,'Normal'],[1,'Grande'],[1.25,'Maior']].map(([scale,label])=>({label,type:'radio',checked:read().petScale===scale,click:()=>setScale(scale)}))},
@@ -193,7 +193,7 @@ handle('chat',async input=>{
  let project = null, accountResult;
  if (intent) {
   privateMessage = true;
-  if (!data.googleTokens) throw new Error('Conecte sua conta em Ajustes → Conta Google para consultar o Gmail ou a agenda.');
+  if (!data.googleTokens) throw new Error('Conecte sua conta em Ajustes → Conta Google → Conexão para consultar o Gmail ou a agenda.');
   accountResult = await lookupAccount(google, intent, text);
  }
  const mcpId=useMcp?(typeof input.mcpId==='string'?input.mcpId:mcp.selected):null;
@@ -299,7 +299,7 @@ async function personalTick() {
  personalTickBusy = true;
  try {
   const due = await personal.takeDue();
-  for (const item of due) reminderNotification('Aluguito · Pessoal', item.title, 'personal');
+  for (const item of due) reminderNotification('Aluguito · Tarefas pessoais', item.title, 'personal');
   if (due.length) broadcast('personal-update', personal.list());
  } catch (error) {
   console.error(redactError(error));
@@ -388,13 +388,23 @@ app.whenReady().then(async()=>{
   const ui=await win.webContents.executeJavaScript('window.runSmoke()');assert.equal(ui.toolbarWorks,true);assert.equal(ui.nestedSettings,true);assert.equal(ui.nameIntroWorks,true);assert.equal(ui.historyDrawerWorks,true);assert.equal(ui.settingsCategories,true);assert.equal(ui.settingsModalWorks,true);assert.equal(ui.memoryWorks,true);assert.equal(ui.multipleMcpWorks,true);assert.equal(ui.keyNotExposed,true);assert.equal(ui.savedKeyVisible,true);assert.equal(ui.markdownSafe,true);assert.equal(ui.noOverflow,true);assert.equal(ui.imagesSafe,true);assert.equal(ui.historyWorks,true);assert.equal(ui.sideBySide,true);assert.equal(BrowserWindow.getAllWindows().length,1);
   const personalWorks = await win.webContents.executeJavaScript(
    '(async()=>{const before=(await api.call("status")).history.length;' +
+   'await $("open-personal").onclick();' +
+   'const listFirst=$("open-personal").textContent==="Tarefas"&&$("personal-list-view").checkVisibility()&&' +
+   '!$("personal-edit").checkVisibility()&&$("personal-list").textContent.includes("Nenhuma tarefa");' +
+   '$("personal-add").click();' +
+   'const manual=$("personal-edit").checkVisibility()&&!$("personal-list-view").checkVisibility()&&' +
+   'document.activeElement===$("personal-title")&&!$("personal-title").value;' +
+   '$("personal-cancel").click();' +
+   'const canceled=$("personal-list-view").checkVisibility()&&!$("personal-edit").checkVisibility()&&' +
+   'document.activeElement===$("personal-add");' +
    '$("message").value="Me lembra de ir à academia às 18h nas segundas, quartas e sextas";' +
    'await $("chat-form").onsubmit({preventDefault(){}});' +
-   'const drafted=!$("personal-reminders").hidden&&$("messages").hidden&&$("daily-overview").hidden&&' +
+   'const drafted=$("personal-edit").checkVisibility()&&$("messages").hidden&&$("daily-overview").hidden&&' +
    '$("personal-title").value==="ir à academia"&&$("personal-time").value==="18:00";' +
    'await $("personal-form").onsubmit({preventDefault(){}});' +
    'const rows=await api.call("personal-list");' +
-   'return drafted&&rows.length===1&&rows[0].days.join(",")==="1,3,5"&&' +
+   'return listFirst&&manual&&canceled&&drafted&&rows.length===1&&rows[0].days.join(",")==="1,3,5"&&' +
+   '$("personal-list-view").checkVisibility()&&!$("personal-edit").checkVisibility()&&' +
    '$("personal-list").textContent.includes("ir à academia")&&' +
    '(await api.call("status")).history.length===before;})()'
   );
@@ -402,7 +412,10 @@ app.whenReady().then(async()=>{
   await store.load();
   assert.equal(personal.list().length,1);
   await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))");
-  await fs.writeFile(path.join(qaDir,'Aluguito-pessoal.png'),(await win.webContents.capturePage()).toPNG());
+  await fs.writeFile(path.join(qaDir,'Aluguito-tarefas.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript('$("personal-add").click()');
+  await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))");
+  await fs.writeFile(path.join(qaDir,'Aluguito-nova-tarefa.png'),(await win.webContents.capturePage()).toPNG());
   await personal.act(personal.list()[0].id,'remove');
   await win.webContents.executeJavaScript('closePersonal()');
   const realGoogleRequest = google.request;
@@ -465,7 +478,7 @@ app.whenReady().then(async()=>{
      '(async()=>{const before=(await api.call("status")).history.length;const button=$("open-daily");' +
      'await button.onclick();const card=$("daily-overview"), text=card.textContent;' +
      'const buttonWorks=!card.hidden&&button.getAttribute("aria-expanded")==="true"&&' +
-     'card.querySelectorAll("h3").length===3&&text.includes("Reunião de revisão")&&' +
+     '$("daily-content").querySelectorAll("h3").length===3&&text.includes("Reunião de revisão")&&' +
      'text.includes("Relatório da Aurora")&&text.includes("Vence hoje")&&' +
      'text.includes("Indisponíveis: Indisponível")&&!text.includes("Sem permissão")&&' +
      '!text.includes("Ocultar concluída")&&text.indexOf("Revisar proposta")<text.indexOf("Enviar materiais");' +
@@ -477,6 +490,42 @@ app.whenReady().then(async()=>{
     assert.deepEqual(called.sort(), [dailyIds[0],dailyIds[1],dailyIds[3],dailyIds[0],dailyIds[1],dailyIds[3]].sort());
     await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))");
     await fs.writeFile(path.join(qaDir, 'Aluguito-meu-dia.png'), (await win.webContents.capturePage()).toPNG());
+    const originalUpdater = updates;
+    let installs = 0, downloads = 0, checks = 0;
+    updates = createUpdater({
+     on() {},
+     checkForUpdates: async () => {
+      checks += 1;
+      return checks === 1 ? {isUpdateAvailable:false} :
+       {isUpdateAvailable:true, updateInfo:{version:'0.2.15'}};
+     },
+     downloadUpdate: async () => { downloads += 1; },
+     quitAndInstall: () => { installs += 1; }
+    }, {changed: current => broadcast('update-status', current)});
+    try {
+     await updates.check();
+     await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(resolve))");
+     assert.equal(await win.webContents.executeJavaScript(
+      '$("daily-update").checkVisibility() && $("daily-update-state").textContent.includes("versão mais recente") && $("daily-install-update").hidden'
+     ), true);
+     await updates.check();
+     await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(resolve))");
+     assert.equal(await win.webContents.executeJavaScript(
+      '$("daily-install-update").checkVisibility() && $("daily-update-state").textContent.includes("0.2.15")'
+     ), true);
+     assert.equal(downloads, 1);
+     assert.equal(installs, 0);
+     await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))");
+     await fs.writeFile(path.join(qaDir, 'Aluguito-meu-dia-atualizacao.png'), (await win.webContents.capturePage()).toPNG());
+     const confirmUpdate = "(async()=>{const confirm=window.confirm;try{window.confirm=()=>%s;await $('daily-install-update').onclick();}finally{window.confirm=confirm;}})()";
+     await win.webContents.executeJavaScript(confirmUpdate.replace('%s', 'false'));
+     assert.equal(installs, 0);
+     await win.webContents.executeJavaScript(confirmUpdate.replace('%s', 'true'));
+     assert.equal(installs, 1);
+    } finally {
+     updates = originalUpdater;
+     broadcast('update-status', updates.status());
+    }
     const savedGoogle = read().googleTokens;
     await save({googleTokens:null});
     const withoutGoogle = await dailyOverview({google, mcp, data:read()});
@@ -511,7 +560,12 @@ app.whenReady().then(async()=>{
   assert.equal(mcp.config(profileId).mcpTokens.access_token,'fake-mcp');
   await mcp.update(profileId,{mcpUrl:'',mcpConnected:false,mcpTools:[],mcpAllowed:[],mcpTokens:null});
   await save({memory:memoryValue({text:'# Memória de teste',enabled:true})});await store.load();assert.equal(read().memory.text,'# Memória de teste');assert.equal(read().namePromptSeen,true);assert.equal(read().key,marker);await save({memory:memoryValue({text:'',enabled:false})});
-  const focusStarted=await win.webContents.executeJavaScript("window.aluguito.call('focus-action','start')");assert.equal(focusStarted.running,true);const focusPaused=await win.webContents.executeJavaScript("window.aluguito.call('focus-action','pause')");assert.equal(focusPaused.running,false);await win.webContents.executeJavaScript("window.aluguito.call('focus-action','reset')");
+  await win.webContents.executeJavaScript('$("focus-quick").onclick()');
+  assert.equal(focusView(read()).running,true);
+  assert.equal(await win.webContents.executeJavaScript('$("focus-quick").classList.contains("running")'),true);
+  await win.webContents.executeJavaScript('$("focus-quick").onclick()');
+  assert.equal(focusView(read()).running,false);
+  await win.webContents.executeJavaScript("window.aluguito.call('focus-action','reset')");
   const skinDir=path.join(app.getPath('userData'),'skins');await fs.mkdir(skinDir,{recursive:true});await fs.copyFile(path.join(__dirname,'../assets/aluguito.png'),path.join(skinDir,'qa.png'));await save({skins:[{id:'qa',name:'Skin de teste'}]});
   const skinBefore={...petRect};await win.webContents.executeJavaScript("window.aluguito.call('select-skin','qa')");assert.ok((await win.webContents.executeJavaScript("window.aluguito.call('skin-image')")).url.startsWith('data:image/png;base64,'));assert.deepEqual(petRect,skinBefore);
   await fs.copyFile(path.join(__dirname,'../assets/icon.png'),path.join(skinDir,'qa-static.png'));await save({skins:[...read().skins,{id:'qa-static',name:'Imagem de teste',animated:false}]});await win.webContents.executeJavaScript("window.aluguito.call('select-skin','qa-static')");assert.equal(await win.webContents.executeJavaScript("(async()=>{for(let n=0;n<20;n++){const img=document.getElementById('sprite');if(img.classList.contains('static-skin'))return getComputedStyle(img).width==='192px';await new Promise(r=>setTimeout(r,20));}return false;})()"),true);
@@ -540,6 +594,9 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("openSettings('appearance')");
   await pause(100);
   await fs.writeFile(path.join(qaDir, 'Aluguito-ajustes.png'), (await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("openSettings('google')");
+  await pause(100);
+  await fs.writeFile(path.join(qaDir, 'Aluguito-ajustes-google.png'), (await win.webContents.capturePage()).toPNG());
   await setConversation('left',{width:340,height:400});
   await win.webContents.executeJavaScript("navigate('chat')");
   await pause(100);
@@ -547,6 +604,12 @@ app.whenReady().then(async()=>{
    "(() => {const bar=document.querySelector('.mast');return bar.scrollWidth<=bar.clientWidth;})()"
   ),true);
   await fs.writeFile(path.join(qaDir, 'Aluguito-conversa-compacta.png'), (await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("openSettings('google')");
+  await pause(100);
+  assert.equal(await win.webContents.executeJavaScript(
+   "(() => {const p=document.querySelector('.settings-content');const tabs=document.querySelector('#settings-google-account .settings-subtabs');return p.scrollWidth<=p.clientWidth&&tabs.scrollWidth<=tabs.clientWidth;})()"
+  ), true);
+  await fs.writeFile(path.join(qaDir, 'Aluguito-google-compacto.png'), (await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("openSettings('mcp')");
   await pause(100);
   const compactSettings = await win.webContents.executeJavaScript(
@@ -598,6 +661,29 @@ app.whenReady().then(async()=>{
   maybeAnimate(daytime);
   assert.equal(motionStop, null);
   assert.equal(BrowserWindow.getAllWindows().length,1);assert.equal(await win.webContents.executeJavaScript('document.querySelector("#conversation-panel").hidden'),true);
+  assert.deepEqual(await win.webContents.executeJavaScript(
+   '[...document.querySelectorAll(".companion-actions button")].filter(el=>el.checkVisibility()).map(el=>el.id)'
+  ), ['focus-quick','pet-menu']);
+  await win.webContents.executeJavaScript('showPetToast("Hora da pausa")');
+  assert.equal(await win.webContents.executeJavaScript('$("pet-toast").textContent'), 'Hora da pausa');
+  await win.webContents.executeJavaScript('clearTimeout(toastTimer);$("pet-toast").textContent=""');
+  win.webContents.sendInputEvent({type:'mouseMove',x:2,y:2});
+  await pause(100);
+  for (const scale of [.45, .8, 1.6]) {
+   await setScale(scale);
+   await win.webContents.executeJavaScript("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))");
+   assert.equal(await win.webContents.executeJavaScript(
+    '(() => {const apple=$("focus-quick"), menu=$("pet-menu"), img=apple.querySelector("img");' +
+    'const a=apple.getBoundingClientRect(), m=menu.getBoundingClientRect(), pet=$("talk").getBoundingClientRect();' +
+    'return img.complete&&img.naturalWidth>0&&a.left===m.left&&a.bottom<m.top&&a.left>(pet.left+pet.right)/2&&' +
+    '[apple,menu].every(button=>{const rect=button.getBoundingClientRect();return ' +
+    'button.contains(document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2));});})()'
+   ), true);
+   if (scale === .8) {
+    await fs.writeFile(path.join(qaDir,'Aluguito-controles-laterais.png'),(await win.webContents.capturePage()).toPNG());
+   }
+  }
+  await setScale(.8);
   if (process.env.ALUGUITO_MOTION_QA) {
    const frames = {
     idle: [0, 220, 410, 820, 860, 945],
@@ -650,9 +736,9 @@ app.whenReady().then(async()=>{
     }
    }
   }
-  console.log(JSON.stringify({passed:true,ui,googleAccountChat:true,personalReminders:true,dailyOverview:true,mcpWriteSettings:true,compactSettings:true,animatedFace:true,ambientMotion:true,pomodoro:true,coffeeAnimation:true,scientistWorks,animatedSkins:true,walkingAndFlying:true,anchoredMotions:true,plainCartoon:true,freeResize:true,independentPanelMove:true,mouseDrag:true,mascotActivation:true,singleWindow:true,collapsed:true,keyRetainedAfterReload:true,encryptedStorage:true}));app.exit(0);
+  console.log(JSON.stringify({passed:true,ui,googleAccountChat:true,personalReminders:true,dailyOverview:true,dailyUpdates:true,mcpWriteSettings:true,compactSettings:true,animatedFace:true,ambientMotion:true,pomodoro:true,coffeeAnimation:true,scientistWorks,animatedSkins:true,walkingAndFlying:true,anchoredMotions:true,plainCartoon:true,freeResize:true,independentPanelMove:true,mouseDrag:true,mascotActivation:true,singleWindow:true,collapsed:true,keyRetainedAfterReload:true,encryptedStorage:true}));app.exit(0);
  }catch(e){await fs.writeFile(path.join(app.getPath('userData'),'failure.png'),(await win.webContents.capturePage()).toPNG()).catch(()=>{});console.error(redactError(e.stack||e));app.exit(1);}}else{
-  focusInterval=setInterval(focusTick,1000);focusTick();win.show();tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'../assets/icon.png')).crop({x:76,y:63,width:104,height:83}).resize({width:32}));tray.setToolTip('Aluguito');tray.setContextMenu(Menu.buildFromTemplate([{label:'Conversar',click:()=>showPanel('chat')},{label:'Agenda',click:()=>showPanel('agenda')},{label:'Meu dia',click:()=>showPanel('daily')},{label:'Pessoal',click:()=>showPanel('personal')},{label:'Ajustes',click:()=>showPanel('settings')},{label:'Mostrar Aluguito',click:()=>{win.show();win.focus();}},{type:'separator'},{label:'Sair',click:()=>app.quit()}]));tray.on('double-click',()=>{win.show();win.focus();});setInterval(reminders,30000);reminders();
+  focusInterval=setInterval(focusTick,1000);focusTick();win.show();tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'../assets/icon.png')).crop({x:76,y:63,width:104,height:83}).resize({width:32}));tray.setToolTip('Aluguito');tray.setContextMenu(Menu.buildFromTemplate([{label:'Conversar',click:()=>showPanel('chat')},{label:'Agenda',click:()=>showPanel('agenda')},{label:'Meu dia',click:()=>showPanel('daily')},{label:'Tarefas',click:()=>showPanel('personal')},{label:'Ajustes',click:()=>showPanel('settings')},{label:'Mostrar Aluguito',click:()=>{win.show();win.focus();}},{type:'separator'},{label:'Sair',click:()=>app.quit()}]));tray.on('double-click',()=>{win.show();win.focus();});setInterval(reminders,30000);reminders();
   if (process.platform === 'win32' && app.isPackaged && !process.env.PORTABLE_EXECUTABLE_FILE &&
       existsSync(path.join(process.resourcesPath,'app-update.yml'))) {
    const identity = require('../package.json').aluguitoReleaseVerification;
@@ -665,7 +751,7 @@ app.whenReady().then(async()=>{
      const message = new Notification({title:'Aluguito · Atualização pronta',
       body:'A versão ' + state.version + ' será instalada quando você escolher reiniciar.',
       icon:path.join(__dirname,'../assets/icon.png')});
-     message.on('click', () => showPanel('system'));
+     message.on('click', () => showPanel('daily'));
      message.show();
     },
     beforeInstall: async () => {

@@ -1,7 +1,23 @@
 const companionApi=window.aluguito,sprite=document.getElementById('sprite');
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const originalStates={idle:{row:0,count:6},waving:{row:3,count:4},thinking:{row:6,count:6},jumping:{row:4,count:5},walking:{row:1,count:8},flying:{row:4,count:1,start:2}};const atlasStates={idle:{row:0,count:6},waving:{row:0,count:6},thinking:{row:0,count:6},jumping:{row:2,count:6},walking:{row:1,count:6},flying:{row:3,count:6}};let petStates=originalStates,cellHeight=208,rowCount=11,skinData=null;
-let focusStatus=null,toastText='',toastTimer;function updateBubble(){const b=document.getElementById('bubble');b.textContent=toastText||(focusStatus?.running?focusStatus.label:document.body.classList.contains('collapsed')?'Vamos conversar?':'Recolher conversa');b.title=toastText||'Abrir ou recolher conversa';const q=document.getElementById('focus-quick');q.title=focusStatus?.running?'Pausar Pomodoro ('+focusStatus.label+')':'Iniciar Pomodoro';q.setAttribute('aria-label',q.title);}
+const talk = document.getElementById('talk');
+const focusQuick = document.getElementById('focus-quick');
+const petToast = document.getElementById('pet-toast');
+let focusStatus, toastTimer;
+
+function updateFocus(value) {
+ focusStatus = value;
+ focusQuick.title = value?.running ? 'Pausar Pomodoro (' + value.label + ')' : 'Iniciar Pomodoro';
+ focusQuick.setAttribute('aria-label', focusQuick.title);
+ focusQuick.classList.toggle('running', Boolean(value?.running));
+}
+
+function showPetToast(text) {
+ petToast.textContent = text;
+ clearTimeout(toastTimer);
+ toastTimer = setTimeout(() => { petToast.textContent = ''; }, 12000);
+}
 let petState='idle',petFrame=0,petReset;
 let petAnimation, animationTick, motionStarted = performance.now();
 const animationCanvas = document.getElementById('pet-animation');
@@ -73,7 +89,19 @@ function changePet(next) {
  drawPetFrame();
 }
 function place(element,rect){if(!rect)return;for(const [css,key]of[['left','x'],['top','y'],['width','width'],['height','height']])element.style[css]=rect[key]+'px';if(element.id==='conversation-panel')element.classList.toggle('compact',rect.width<430);}
-function appearance(value){document.body.classList.toggle('collapsed',!value.expanded);document.getElementById('conversation-panel').hidden=!value.expanded;document.documentElement.style.setProperty('--pet-scale',value.petScale||.8);updateBubble();if(value.layout){place(document.querySelector('.companion'),value.layout.pet);place(document.getElementById('conversation-panel'),value.layout.panel);}}
+function appearance(value) {
+ document.body.classList.toggle('collapsed', !value.expanded);
+ const panel = document.getElementById('conversation-panel');
+ panel.hidden = !value.expanded;
+ talk.title = value.expanded ? 'Recolher conversa' : 'Abrir conversa';
+ talk.setAttribute('aria-label', talk.title);
+ talk.setAttribute('aria-expanded', String(value.expanded));
+ document.documentElement.style.setProperty('--pet-scale', value.petScale || .8);
+ if (value.layout) {
+  place(document.querySelector('.companion'), value.layout.pet);
+  place(panel, value.layout.panel);
+ }
+}
 function bindGesture(element,mode,onClick){let active=null;
  element.addEventListener('pointerdown',event=>{if(event.button!==0||active!==null)return;if(mode==='panel-move'&&event.target.closest('button,input,select,a,textarea'))return;event.preventDefault();active=event.pointerId;element.setPointerCapture(active);document.body.classList.add('gesturing');companionApi.call('begin-gesture',mode).catch(()=>{});});
  async function end(event,cancelled=false){if(active!==event.pointerId)return;const id=active;active=null;if(element.hasPointerCapture(id))element.releasePointerCapture(id);document.body.classList.remove('gesturing');try{const result=await companionApi.call('end-gesture');if(!cancelled&&!result.moved&&onClick)onClick();}catch{}}
@@ -81,8 +109,7 @@ function bindGesture(element,mode,onClick){let active=null;
 }
 function toggle(){changePet('waving');companionApi.call('toggle-panel').catch(()=>{});}
 const spriteTick = setInterval(() => { petFrame++; drawPetFrame(); }, 180);companionApi.on('pet-state',changePet);companionApi.on('appearance',appearance);
-const talk=document.getElementById('talk');bindGesture(talk,'pet-move',toggle);talk.onclick=event=>{if(event.detail===0)toggle();};
-document.getElementById('bubble').onclick=toggle;
+bindGesture(talk,'pet-move',toggle);talk.onclick=event=>{if(event.detail===0)toggle();};
 document.getElementById('pet-menu').onclick=()=>companionApi.call('pet-menu').catch(()=>{});
 const visual=document.createElement('div');visual.className='pet-visual';talk.replaceWith(visual);visual.append(talk);
 const petResize=document.createElement('button');petResize.className='pet-resize';petResize.textContent='↘';petResize.title='Arraste para redimensionar o Aluguito';petResize.setAttribute('aria-label',petResize.title);visual.append(petResize);bindGesture(petResize,'pet-resize');
@@ -90,8 +117,14 @@ bindGesture(document.querySelector('.mast'),'panel-move');
 bindGesture(document.querySelector('.settings-header'),'panel-move');
 for(const direction of['n','s','e','w','ne','nw','se','sw']){const handle=document.createElement('div');handle.className='panel-resize '+direction;handle.title='Arraste para redimensionar a conversa';handle.setAttribute('aria-hidden','true');document.getElementById('conversation-panel').append(handle);bindGesture(handle,'panel-'+direction);}
 document.querySelector('.companion').addEventListener('contextmenu',event=>{event.preventDefault();companionApi.call('pet-menu').catch(()=>{});});
-companionApi.call('status').then(value=>{focusStatus=value.focus;appearance(value);}).catch(()=>{});
-companionApi.on('focus-update',value=>{focusStatus=value;updateBubble();});companionApi.on('pet-toast',text=>{toastText=text;updateBubble();clearTimeout(toastTimer);toastTimer=setTimeout(()=>{toastText='';updateBubble();},12000);});document.getElementById('focus-quick').onclick=()=>companionApi.call('focus-action',focusStatus?.running?'pause':'start').then(value=>{focusStatus=value;updateBubble();}).catch(()=>{});
+companionApi.call('status').then(value => {
+ updateFocus(value.focus);
+ appearance(value);
+}).catch(() => {});
+companionApi.on('focus-update', updateFocus);
+companionApi.on('pet-toast', showPetToast);
+focusQuick.onclick = () => companionApi.call('focus-action', focusStatus?.running ? 'pause' : 'start')
+ .then(updateFocus).catch(() => {});
 
 let skinLoad = 0;
 async function loadSkin() {

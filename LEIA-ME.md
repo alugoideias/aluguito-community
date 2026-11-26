@@ -6,7 +6,7 @@
 # Ajustes da versão 0.2.6
 
 - Agenda, E-mails e Memória ficam em **Ajustes**. O botão ☰ abre a lista de conversas na lateral.
-- O logo da Alugo Ideias e a versão ficam em **Ajustes → Windows e dados**. No primeiro uso, o Aluguito pergunta como pode chamar você. O nome pode ser editado ou apagado em **Ajustes → Memória**.
+- O logo da Alugo Ideias e a versão ficam em **Ajustes → Sobre**. No primeiro uso, o Aluguito pergunta como pode chamar você. O nome pode ser editado ou apagado em **Ajustes → Meus dados → Memória**.
 
 # Ajustes da versão 0.2.5
 
@@ -28,9 +28,9 @@
 
 # Novidades da versão 0.2.3
 
-- Pomodoro: botão 🍅 ao lado da conversa inicia ou pausa o timer. Em Ajustes, use Iniciar Pomodoro, Pausar e Reiniciar e defina os minutos de foco e descanso (25/5 inicialmente). A pausa começa ao terminar o foco; o próximo foco depende de você iniciar. Avisos funcionam enquanto o aplicativo está aberto.
+- Pomodoro: ícone da maçã junto ao mascote inicia ou pausa o timer. Em **Ajustes → Meus dados → Pomodoro**, use Iniciar Pomodoro, Pausar e Reiniciar e defina os minutos de foco e descanso (25/5 inicialmente). A pausa começa ao terminar o foco; o próximo foco depende de você iniciar. Avisos funcionam enquanto o aplicativo está aberto.
 - Café animado: no coffee time ele levanta a caneca e toma um gole. Use ••• → Movimentos → Tomar um café ou Ver animação de café em Ajustes para ver na hora. Há versões Padrão, Aventureiro e Natal.
-- Frases durante o dia: habilite em Ajustes e escolha o intervalo (15 a 240 minutos). Água, alongamento e coffee time entre 8h e 20h; aguardam durante o Pomodoro e as respostas.
+- Frases durante o dia: habilite em **Ajustes → Meus dados → Pomodoro** e escolha o intervalo (15 a 240 minutos). Água, alongamento e coffee time entre 8h e 20h; aguardam durante o Pomodoro e as respostas.
 
 - Memória em Markdown: escreva, importe, exporte, salve ou desative na aba Memória. A cópia salva fica protegida no computador e, quando ativa, vai ao Gemini nas perguntas.
 - Vários MCPs: nomeie cada conexão em Ajustes. Selecione pelo nome na conversa e marque Consultar projeto MCP. Cada servidor tem autorização e ferramentas próprias; novos cadastros não recebem permissões automaticamente.
@@ -42,7 +42,7 @@
 
 1. Se estiver usando a versão anterior, escolha **Sair do Aluguito** no menu do mascote ou no ícone perto do relógio.
 2. Extraia **Aluguito-Portable-0.2.3.zip** para uma pasta de sua escolha e abra **Aluguito.exe** dentro dela. Não exige instalação, Node.js ou acesso de administrador. Mantenha todos os arquivos da pasta juntos.
-3. Clique no personagem ou em **Vamos conversar?**. O painel abre junto ao próprio mascote.
+3. Clique no personagem. O painel abre junto ao próprio mascote.
 4. As configurações e a conversa da versão anterior são recuperadas do mesmo perfil do Windows. O modelo escolhido para esta atualização é `gemini-3.5-flash-lite`. Configurações antigas que ainda usam os modelos iniciais `gemini-2.5-flash` ou `gemini-3.5-flash` passam para essa versão leve; outros modelos personalizados são preservados.
 
 O aplicativo é portátil; os dados ficam protegidos neste computador. Para levar o aplicativo a outro computador, copie a pasta inteira e configure sua chave e sua conta Google nele. Se mover a pasta e usar a opção de iniciar com o Windows, salve novamente essa opção para atualizar o caminho.
@@ -51,10 +51,10 @@ Esta é uma versão de teste sem assinatura digital. O Windows pode mostrar um a
 
 ## Usar o mascote
 
-- O menu **•••** fica ao lado de **Vamos conversar?**.
+- O atalho do Pomodoro e o menu **•••** ficam em coluna à direita do mascote.
 - **Tamanho do Aluguito** oferece Pequeno, Normal, Grande e Maior.
 - Clique e arraste o próprio personagem para movê-lo. Um clique curto abre ou recolhe a conversa.
-- Arraste o cantinho com a seta no personagem para redimensioná-lo livremente. Ele começa menor nesta versão.
+- Passe o mouse sobre o mascote e arraste a seta para redimensioná-lo. Ele começa menor nesta versão.
 - A conversa começa ao lado esquerdo do Aluguito. Arraste o cabeçalho para posicionar somente a conversa, sem mover o mascote.
 - Arraste as bordas e os cantos do painel para ajustar livremente largura e altura.
 - No menu **•••**, use **Posição da conversa** para escolher esquerda, direita ou acima e **Tamanho da conversa** para os tamanhos prontos. As preferências são salvas.
@@ -65,7 +65,7 @@ Esta é uma versão de teste sem assinatura digital. O Windows pode mostrar um a
 
 ## Chave, modelo e data
 
-Em **Ajustes**, cole a chave do Gemini e use **Testar conexão**. Depois de salvar, o campo não revela a chave: mostra **Chave salva — digite aqui somente para trocar**. Salvar com o campo vazio mantém a chave atual. **Remover chave** é a ação que a apaga.
+Em **Ajustes → Conta Google → Gemini**, cole a chave do Gemini e use **Testar conexão**. Depois de salvar, o campo não revela a chave: mostra **Chave salva — digite aqui somente para trocar**. Salvar com o campo vazio mantém a chave atual. **Remover chave** é a ação que a apaga.
 
 Você pode criar uma chave em [Google AI Studio](https://aistudio.google.com/apikey). Nenhuma chave está embutida no executável. A integração encontrada no Explora usa a credencial da Lovable, que não foi copiada para este aplicativo.
 
@@ -75,7 +75,7 @@ Em caso de erro 503 ou outros erros temporários do servidor, tenta novamente at
 
 ## Pesquisa, formatação e imagens
 
-**Pesquisar na web**, no campo de conversa, habilita a ferramenta Google Search do Gemini para aquela pergunta. Começa desmarcada para permitir conversar mesmo quando a pesquisa estiver sem cota. O modelo decide quando buscar. **Ajustes → Permitir pesquisa na web** controla a disponibilidade geral. Uma resposta com resultados mostra fontes consultadas e, quando fornecidas, sugestões do Google.
+**Pesquisar na web**, no campo de conversa, habilita a ferramenta Google Search do Gemini para aquela pergunta. Começa desmarcada para permitir conversar mesmo quando a pesquisa estiver sem cota. O modelo decide quando buscar. **Ajustes → Conta Google → Gemini → Permitir pesquisa na web** controla a disponibilidade geral. Uma resposta com resultados mostra fontes consultadas e, quando fornecidas, sugestões do Google.
 
 Títulos, negrito, listas, links, tabelas, citações e blocos de código são exibidos com formatação. Links abrem no navegador. Conteúdo recebido é sanitizado e não pode executar scripts.
 
@@ -102,10 +102,10 @@ A chave do Gemini não autoriza o acesso ao Gmail ou à agenda. Se esta instala�
 2. Ative **Gmail API** e **Google Calendar API** nesse projeto.
 3. Configure a tela de consentimento OAuth com o nome Aluguito e os contatos solicitados pelo Google. Se o aplicativo estiver em teste, inclua o e-mail da conta que vai usá-lo como usuário de teste.
 4. Em **APIs e serviços → Credenciais**, crie um **ID de cliente OAuth** do tipo **Aplicativo para computador / Desktop app**. Baixe seu JSON. Não use conta de serviço ou credencial de aplicação web.
-5. No Aluguito, entre em **Ajustes → Importar JSON**, selecione o arquivo e clique em **Conectar Google**.
+5. No Aluguito, entre em **Ajustes → Conta Google → Conexão → Importar credencial JSON**, selecione o arquivo e clique em **Conectar Google**.
 6. Escolha sua conta no navegador e autorize as permissões de leitura. O Aluguito exibirá o endereço conectado quando a API permitir consultar o perfil.
 
-Os links de cada etapa também estão em **Ajustes → Primeira conexão: passo a passo**. Depois que a configuração existir, o usuário só precisa autorizar sua conta no navegador.
+Os links de cada etapa também estão em **Ajustes → Conta Google → Conexão → Primeira conexão: passo a passo**. Depois que a configuração existir, o usuário só precisa autorizar sua conta no navegador.
 
 Os escopos são somente leitura: `gmail.readonly` e `calendar.events.readonly`. Antes de distribuir para outras pessoas, o responsável precisa preparar a configuração de produção e a verificação dos escopos exigida pelo Google. Em modo de teste, autorizações podem expirar e exigir nova conexão.
 
@@ -125,7 +125,7 @@ O Aluguito verifica reuniões a cada 30 segundos e notifica com a antecedência 
 
 ## Conectar seu servidor MCP depois, por OAuth
 
-1. Em **Ajustes → Seus servidores MCP**, clique em Adicionar MCP para um novo cadastro, dê um nome e informe o endereço completo do servidor, por exemplo `https://seu-projeto.com/mcp`.
+1. Em **Ajustes → Integrações**, clique em Adicionar MCP para um novo cadastro, dê um nome e informe o endereço completo do servidor, por exemplo `https://seu-projeto.com/mcp`.
 2. Use a conexão HTTP padrão. Se o seu servidor usar o transporte antigo SSE, escolha essa compatibilidade na configuração avançada.
 3. Clique em **Conectar MCP**. O Aluguito descobre a configuração OAuth e abre o navegador para login e autorização. Suporta PKCE, cadastro dinâmico quando oferecido pelo servidor e renovação de tokens pelo SDK oficial.
 4. Se o seu provedor exigir cadastro prévio de aplicativo, registre um cliente público para desktop, com PKCE, e informe o ID do aplicativo no campo avançado. O retorno que deve ser autorizado é **http://127.0.0.1:35691/mcp/oauth/callback**. Não precisa colar sua senha no Aluguito.
