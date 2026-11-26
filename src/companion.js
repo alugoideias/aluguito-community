@@ -98,7 +98,7 @@ async function loadSkin() {
  const ticket = ++skinLoad;
  try {
   const image = await companionApi.call('skin-image');
-  const animation = image && await createPetAnimation(animationCanvas, image.url, image.id)?.catch(() => null);
+  const animation = image && await createPetAnimation(animationCanvas, image.url, image.id, image.coffeeUrl)?.catch(() => null);
   if (ticket !== skinLoad) return;
   skinData = image;
   petAnimation = animation;

@@ -43,160 +43,6 @@ const artWidth = 192;
 const artHeight = 208;
 const tau = 2 * Math.PI;
 
-// The reference points follow the head and neck in each existing cartoon pose.
-const scientistPoses = [
- [[102,87,101,120],[98,87,97,120],[97,87,96,119],[104,87,102,120],[101,87,100,120],[100,87,99,120]],
- [[102,87,101,120],[97,86,97,119],[102,87,101,120],[102,87,102,120],[104,85,105,118],[102,88,101,120]],
- [[102,87,101,120],[97,86,97,118],[99,82,101,112],[100,80,101,108],[100,84,101,113],[101,87,100,119]],
- [[99,85,99,116],[99,83,100,112],[99,82,101,110],[99,82,101,109],[99,83,100,112],[99,85,100,116]]
-];
-
-const standardCuffs = [[-33,25],[35,25]];
-const scientistCuffs = [
- Array(6).fill(standardCuffs),
- [standardCuffs,[[-39,23],[37,14]],standardCuffs,standardCuffs,[[-32,26],[36,14]],standardCuffs],
- [standardCuffs,[[-35,15],[36,16]],[[-51,7],[49,6]],[[-54,-3],[55,-4]],[[-49,7],[51,8]],standardCuffs],
- Array(6).fill([[-64,6],[63,6]])
-];
-
-function paintSleeve(context, side, cuff) {
- const angle = Math.atan2(cuff[1] - 5,cuff[0] - side * 14);
- const length = Math.hypot(cuff[0] - side * 14,cuff[1] - 5);
- context.save();
- context.translate(side * 14,5);
- context.rotate(angle);
- context.beginPath();
- context.moveTo(-4,-8);
- context.quadraticCurveTo(length*.38,-10,length,-6);
- context.lineTo(length,6);
- context.quadraticCurveTo(length*.50,9,-4,10);
- context.closePath();
- context.fillStyle = '#dedbd2';
- context.fill();
- context.strokeStyle = '#50545a';
- context.lineWidth = 1.9;
- context.stroke();
- context.strokeStyle = '#fffaf1';
- context.lineWidth = 2.1;
- context.beginPath();
- context.moveTo(2,-4.8);
- context.lineTo(length-2,-3.7);
- context.stroke();
- context.strokeStyle = '#849397';
- context.lineWidth = 1.2;
- context.beginPath();
- context.moveTo(length-3,-5);
- context.lineTo(length-3,5);
- context.stroke();
- context.restore();
-}
-
-function paintScientist(context, row, column) {
- const [headX, headY, bodyX, bodyY] = scientistPoses[row][column];
- context.save();
- context.translate(bodyX, bodyY);
- context.globalCompositeOperation = 'source-atop';
- context.lineJoin = 'round';
- for (const [index, cuff] of scientistCuffs[row][column].entries()) paintSleeve(context, index === 0 ? -1 : 1, cuff);
- const fabric = context.createLinearGradient(-25,0,25,40);
- fabric.addColorStop(0,'#fffaf1');
- fabric.addColorStop(.56,'#f1ede2');
- fabric.addColorStop(1,'#cfc7ba');
- context.fillStyle = fabric;
- context.strokeStyle = '#4b5055';
- context.lineWidth = 2;
- context.beginPath();
- context.moveTo(-14,-2);
- context.quadraticCurveTo(-23,1,-24,12);
- context.quadraticCurveTo(-23,27,-22,39);
- context.quadraticCurveTo(-11,45,-3,42);
- context.lineTo(0,37);
- context.lineTo(4,43);
- context.quadraticCurveTo(15,44,23,39);
- context.quadraticCurveTo(21,25,24,12);
- context.quadraticCurveTo(22,1,14,-2);
- context.lineTo(0,11);
- context.closePath();
- context.fill();
- context.stroke();
-
- context.fillStyle = '#fffbf4';
- context.strokeStyle = '#6d7274';
- context.lineWidth = 1.45;
- context.beginPath();
- context.moveTo(-14,-1);
- context.lineTo(-19,11);
- context.lineTo(-10,12);
- context.lineTo(-13,17);
- context.lineTo(0,28);
- context.lineTo(13,17);
- context.lineTo(10,12);
- context.lineTo(19,11);
- context.lineTo(14,-1);
- context.lineTo(0,12);
- context.closePath();
- context.fill();
- context.stroke();
-
- context.strokeStyle = '#818a89';
- context.beginPath();
- context.moveTo(0,27);
- context.lineTo(0,37);
- context.moveTo(-17,30);
- context.lineTo(-6,30);
- context.lineTo(-7,37);
- context.lineTo(-16,37);
- context.closePath();
- context.moveTo(8,19);
- context.lineTo(18,19);
- context.lineTo(17,27);
- context.lineTo(9,27);
- context.closePath();
- context.stroke();
- context.fillStyle = '#08796e';
- context.fillRect(11,14,3,7);
- context.fillStyle = '#f6a500';
- context.fillRect(11,14,3,2);
- context.fillStyle = '#9b855b';
- context.beginPath();
- context.arc(3.5,30,1.45,0,tau);
- context.arc(3.5,36,1.45,0,tau);
- context.fill();
- context.restore();
-
- context.save();
- context.translate(headX, headY);
- context.lineCap = 'round';
- context.strokeStyle = '#284b51';
- context.lineWidth = 4;
- context.beginPath();
- context.moveTo(-36, -1);
- context.lineTo(-32, -3);
- context.moveTo(-9, -1);
- context.quadraticCurveTo(0, -6, 9, -1);
- context.moveTo(32, -3);
- context.lineTo(36, -1);
- context.stroke();
- for (const x of [-21, 21]) {
-  context.beginPath();
-  context.roundRect(x - 14, -13, 28, 26, 9);
-  context.fillStyle = 'rgba(153, 241, 222, .15)';
-  context.fill();
-  context.strokeStyle = '#284b51';
-  context.lineWidth = 3.1;
-  context.stroke();
-  context.strokeStyle = '#88d9cf';
-  context.lineWidth = 1.3;
-  context.beginPath();
-  context.moveTo(x - 9, -8);
-  context.lineTo(x - 2, -9);
-  context.moveTo(x + 6, 8);
-  context.lineTo(x + 9, 5);
-  context.stroke();
- }
- context.restore();
-}
-
 function easeEdge(value) {
  const t = Math.max(0, Math.min(1, value));
  return t * t * (3 - 2 * t);
@@ -209,9 +55,9 @@ function traceArm(context, points) {
  for (const [x, y] of points) context.lineTo(x, y);
  context.closePath();
 }
-function readPose(context, image, size, column, row = 0) {
+function readPose(context, image, size, column) {
  context.clearRect(0, 0, artWidth, artHeight);
- context.drawImage(image, column * size, row * size, size, size === 256 ? size : artHeight,
+ context.drawImage(image, column * size, 0, size, size === 256 ? size : artHeight,
   0, size === 256 ? 16 : 0, artWidth, size === 256 ? 192 : artHeight);
 }
 function paintEyelid(context, eyeLayer, pose, source, target) {
@@ -231,12 +77,11 @@ function paintEyelid(context, eyeLayer, pose, source, target) {
  eyeLayer.restore();
  context.drawImage(eyeLayer.canvas, 0, 0);
 }
-function makeExpressions(image, neutral, eyes, decorate) {
+function makeExpressions(neutral, eyes, expressionPose) {
  const pose = artSurface(), expression = artSurface(), layer = artSurface();
  const textures = [neutral.getImageData(0, 0, artWidth, artHeight).data];
  for (const [level, column] of [[1, 3], [2, 2]]) {
-  readPose(pose, image, 256, column);
-  decorate?.(pose, 0, column);
+  expressionPose(pose, column);
   expression.clearRect(0, 0, artWidth, artHeight);
   expression.drawImage(neutral.canvas, 0, 0);
   for (let i = 0; i < eyes[0].length; i++) {
@@ -246,8 +91,8 @@ function makeExpressions(image, neutral, eyes, decorate) {
  }
  return textures;
 }
-function createIdleMotion(image, neutral, profile, context, decorate) {
- const textures = makeExpressions(image, neutral, profile.eyes, decorate);
+function createIdleMotion(neutral, profile, context, expressionPose) {
+ const textures = makeExpressions(neutral, profile.eyes, expressionPose);
  const output = context.createImageData(artWidth, artHeight);
  const rows = Array.from({length: artHeight}, (_, y) => ({
   head: easeEdge((profile.neck + 14 - y) / 28),
@@ -409,7 +254,7 @@ function paintSteam(context, x, y, time, opacity, pixel, palette) {
  context.restore();
 }
 
-function createCoffeeMotion(image, neutral, profile, context, decorate) {
+function createCoffeeMotion(image, neutral, profile, context) {
  const body = artSurface();
  const closedEyes = artSurface(), pose = artSurface(), eyeLayer = artSurface();
  const pixel = !profile.eyes;
@@ -418,7 +263,6 @@ function createCoffeeMotion(image, neutral, profile, context, decorate) {
  const rightWing = prepareWing(neutral, body, profile);
  const [cupX, holdY, beakY] = profile.cup;
  readPose(pose, image, pixel ? 192 : 256, 2);
- decorate?.(pose, 0, 2);
  const open = pixel ? profile.sipEyes[0] : profile.eyes[0];
  const closed = pixel ? profile.sipEyes[1] : profile.eyes[2];
  for (let i = 0; i < open.length; i++) {
@@ -455,25 +299,73 @@ function createCoffeeMotion(image, neutral, profile, context, decorate) {
  };
 }
 
-function createPetAnimation(canvas, source, id) {
- const decorate = id === 'cientista' ? paintScientist : null;
- const profile = petArtProfiles[decorate ? 'cartoon' : id];
- if (!profile) return null;
+// Registration rectangles in each generated cell, with a shared baseline for the feet.
+const scientistBounds = [
+ [[85,11,235,236],[87,12,235,235],[84,13,231,236],[75,13,222,235],[59,10,211,236],[56,11,202,235]],
+ [[76,10,222,243],[77,13,219,239],[68,13,210,237],[58,14,200,235],[54,15,195,239],[49,15,194,234]],
+ [[75,18,226,232],[65,13,222,232],[48,11,223,219],[35,5,222,205],[34,15,217,230],[51,19,201,234]],
+ [[37,19,241,237],[33,12,240,220],[26,2,236,205],[19,0,229,193],[13,13,223,214],[13,20,226,237]]
+];
+const scientistCoffeeBounds = [
+ [[134,22,395,469],[127,24,387,469],[119,24,380,469]],
+ [[134,22,399,469],[126,22,387,469],[120,24,380,469]]
+];
+const scientistFace = {
+ center: 96, neck: 107,
+ eyes: [[[77,73],[115,73]],[[77,75],[115,75]],[[77,74],[115,74]]]
+};
+const scientistCoffeeStarts = [0, 1500, 3400, 4350, 5100, 6100];
+
+function loadPetImage(source) {
  const image = new Image();
  image.src = source;
- return image.decode().then(() => {
+ return image.decode().then(() => image);
+}
+
+function registeredPose(image, size, bounds) {
+ const [,top,,bottom] = bounds[0][0];
+ const scale = 169 / (bottom - top);
+ return (context, row, column) => {
+  const [l,t,r,b] = bounds[row][column];
+  const left = Math.max(0,l - 3), right = Math.min(size,r + 3);
+  const upper = Math.max(0,t - 3), lower = Math.min(size,b + 3);
+  const width = right - left, height = lower - upper;
+  context.clearRect(0,0,artWidth,artHeight);
+  context.imageSmoothingEnabled = true;
+  context.drawImage(image, column * size + left, row * size + upper, width, height,
+   (artWidth - width * scale) / 2, 197 + (upper - bottom) * scale, width * scale, height * scale);
+ };
+}
+
+async function createScientistAnimation(canvas, source, coffeeSource) {
+ const [atlas, coffee] = await Promise.all([loadPetImage(source),loadPetImage(coffeeSource)]);
+ const context = canvas.getContext('2d');
+ const neutral = artSurface();
+ const pose = registeredPose(atlas, 256, scientistBounds);
+ const cupPose = registeredPose(coffee, 512, scientistCoffeeBounds);
+ pose(neutral,0,0);
+ return {
+  idle: createIdleMotion(neutral, scientistFace, context, (target,column) => pose(target,0,column)),
+  frame: (row,column) => pose(context,row,column),
+  coffee(time) {
+   const frame = scientistCoffeeStarts.findLastIndex(start => time >= start);
+   cupPose(context,Math.floor(frame / 3),frame % 3);
+  }
+ };
+}
+
+function createPetAnimation(canvas, source, id, coffeeSource) {
+ if (id === 'cientista') return createScientistAnimation(canvas, source, coffeeSource);
+ const profile = petArtProfiles[id];
+ if (!profile) return null;
+ return loadPetImage(source).then(image => {
   const neutral = artSurface();
   readPose(neutral, image, profile.eyes ? 256 : 192, 0);
-  decorate?.(neutral, 0, 0);
   const context = canvas.getContext('2d');
   return {
-   idle: profile.eyes ? createIdleMotion(image, neutral, profile, context, decorate) : null,
-   coffee: createCoffeeMotion(image, neutral, profile, context, decorate),
-   frame: decorate ? (row, column) => {
-    context.imageSmoothingEnabled = true;
-    readPose(context,image,256,column,row);
-    decorate(context,row,column);
-   } : null
+   idle: profile.eyes ? createIdleMotion(neutral, profile, context,
+    (target,column) => readPose(target,image,256,column)) : null,
+   coffee: createCoffeeMotion(image, neutral, profile, context)
   };
  });
 }

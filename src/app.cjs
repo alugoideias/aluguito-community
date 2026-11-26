@@ -256,8 +256,30 @@ handle('save-preferred-name', async input => {
 });
 handle('import-memory',async()=>{const result=await dialog.showOpenDialog(win,{title:'Importar memória Markdown',filters:[{name:'Markdown',extensions:['md','markdown']}],properties:['openFile']});if(result.canceled)return null;const file=result.filePaths[0];if(!/\.(md|markdown)$/i.test(file)||(await fs.stat(file)).size>120000)throw new Error('Selecione um arquivo MD de até 120 KB.');return memoryValue({text:await fs.readFile(file,'utf8'),enabled:true,name:path.basename(file)});});
 handle('export-memory',async input=>{const value=memoryValue(input),result=await dialog.showSaveDialog(win,{title:'Exportar memória',defaultPath:'Aluguito-memoria.md',filters:[{name:'Markdown',extensions:['md']}]});if(!result.canceled)await fs.writeFile(result.filePath,value.text,'utf8');return!result.canceled;});
-let coffeeData;
-handle('skin-image',async()=>{const id=read().skinId||'default',builtin=builtins.find(s=>s.id===id),skin=builtin||(read().skins||[]).find(p=>p.id===id);if(!skin)return null;try{if(!coffeeData)coffeeData='data:image/png;base64,'+(await fs.readFile(path.join(__dirname,'../assets/aluguito-coffee-cores.png'))).toString('base64');const file=builtin?path.join(__dirname,'../assets',builtin.file):path.join(app.getPath('userData'),'skins',skin.id+'.png');return{url:'data:image/png;base64,'+(await fs.readFile(file)).toString('base64'),id:skin.id,animated:skin.animated!==false,format:skin.format||'original',rows:skin.rows,softPalette:Boolean(builtin?.softPalette),coffeeDuration:builtin?coffeeDuration:2160,coffeeUrl:coffeeData,coffeeRow:builtin?.coffeeRow??1};}catch{return null;}});
+const coffeeAssets = new Map();
+handle('skin-image', async () => {
+ const data = read(), id = data.skinId || 'default';
+ const builtin = builtins.find(skin => skin.id === id);
+ const skin = builtin || (data.skins || []).find(skin => skin.id === id);
+ if (!skin) return null;
+ try {
+  const assets = path.join(__dirname, '../assets');
+  const coffeeFile = builtin?.coffeeFile || 'aluguito-coffee-cores.png';
+  if (!coffeeAssets.has(coffeeFile)) {
+   coffeeAssets.set(coffeeFile, 'data:image/png;base64,' +
+    (await fs.readFile(path.join(assets, coffeeFile))).toString('base64'));
+  }
+  const file = builtin ? path.join(assets, builtin.file) : path.join(app.getPath('userData'), 'skins', id + '.png');
+  return {
+   url: 'data:image/png;base64,' + (await fs.readFile(file)).toString('base64'),
+   id, animated: skin.animated !== false, format: skin.format || 'original', rows: skin.rows,
+   softPalette: Boolean(builtin?.softPalette), coffeeDuration: builtin ? coffeeDuration : 2160,
+   coffeeUrl: coffeeAssets.get(coffeeFile), coffeeRow: builtin?.coffeeRow ?? 0
+  };
+ } catch {
+  return null;
+ }
+});
 handle('select-skin',async id=>{if(!skinList(read()).some(s=>s.id===id))throw new Error('Skin não encontrada.');await save({skinId:id});broadcast('skin-changed',id);return status();});
 handle('import-skin',async name=>{if(typeof name!=='string'||!name.trim()||name.length>60)throw new Error('Dê um nome à skin, com até 60 caracteres.');const result=await dialog.showOpenDialog(win,{title:'Importar skin',filters:[{name:'Imagem ou atlas do mascote',extensions:['png','webp']}],properties:['openFile']});if(result.canceled)return status();const file=result.filePaths[0];if((await fs.stat(file)).size>20000000)throw new Error('Use uma imagem de até 20 MB.');const img=nativeImage.createFromPath(file),size=img.getSize();if(img.isEmpty()||size.width<32||size.height<32||size.width>4096||size.height>4096)throw new Error('Use uma imagem PNG ou WebP válida, entre 32 e 4096 pixels por lado.');const format=imageFormat(size),animated=format!=='static';const id=require('node:crypto').randomUUID(),dir=path.join(app.getPath('userData'),'skins');await fs.mkdir(dir,{recursive:true});await fs.writeFile(path.join(dir,id+'.png'),img.toPNG());await save({skins:[...(read().skins||[]),{id,name:name.trim(),animated,format,rows:format==='original'?size.height/208:4}],skinId:id});broadcast('skin-changed',id);return status();});
 let dailyRequest, taskProjectsRequest, workTickBusy = false, personalTickBusy = false;
