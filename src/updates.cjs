@@ -1,4 +1,4 @@
-function createUpdater(updater, {changed = () => {}, ready = () => {}, beforeInstall = async () => {}} = {}) {
+function createUpdater(updater, {changed = () => {}, ready = () => {}, beforeInstall = async () => {}, verifyDownloaded = async () => {}} = {}) {
  let state = {phase: updater ? 'idle' : 'disabled'};
  let pending;
  const report = (phase, details = {}) => {
@@ -7,6 +7,7 @@ function createUpdater(updater, {changed = () => {}, ready = () => {}, beforeIns
  };
  if (updater) {
   updater.autoDownload = false;
+  updater.disableWebInstaller = true;
   updater.autoInstallOnAppQuit = false;
   updater.allowPrerelease = false;
   updater.allowDowngrade = false;
@@ -35,6 +36,7 @@ function createUpdater(updater, {changed = () => {}, ready = () => {}, beforeIns
      const {version} = result.updateInfo;
      report('downloading', {version, progress: 0});
      await updater.downloadUpdate();
+     await verifyDownloaded(version,updater.installerPath);
      report('ready', {version});
      ready(state);
     } catch {
@@ -50,6 +52,17 @@ function createUpdater(updater, {changed = () => {}, ready = () => {}, beforeIns
    report('installing', {version});
    try {
     await beforeInstall();
+   } catch (error) {
+    report('ready', {version, installFailed: true});
+    throw error;
+   }
+   try {
+    await verifyDownloaded(version,updater.installerPath);
+   } catch (error) {
+    report('error');
+    throw error;
+   }
+   try {
     updater.quitAndInstall(true, true);
    } catch (error) {
     report('ready', {version, installFailed: true});

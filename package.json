@@ -1,6 +1,6 @@
 {
   "name": "aluguito-assistente",
-  "version": "0.2.11",
+  "version": "0.2.13",
   "description": "Aluguito: seu companheiro de ideias, agenda e e-mail",
   "author": "Alugo Ideias",
   "private": true,
@@ -10,7 +10,10 @@
     "test": "node --test test/*.test.cjs",
     "smoke": "electron . --smoke",
     "dist": "electron-builder --win zip --x64",
-    "dist:installer": "electron-builder --config electron-builder.installer.cjs --win nsis --x64 --publish never"
+    "dist:installer": "electron-builder --config electron-builder.installer.cjs --win nsis --x64 --publish never",
+    "dist:github": "node scripts/release-github.cjs",
+    "release:github": "node scripts/release-github.cjs --publish",
+    "signing:init": "node scripts/release-signing.cjs"
   },
   "devDependencies": {
     "dompurify": "3.5.0",

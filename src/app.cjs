@@ -1,6 +1,7 @@
 const {app,BrowserWindow,ipcMain,safeStorage,shell,dialog,Tray,Menu,Notification,screen,nativeImage}=require('electron');
 const {existsSync}=require('node:fs');
 const {createUpdater}=require('./updates.cjs');
+const {createReleaseVerifier}=require('./release-verification.cjs');
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {pathToFileURL}=require('node:url');
 const {gemini,safeLink,dueReminders,redactError,listModels}=require('./core.cjs');
@@ -624,7 +625,10 @@ app.whenReady().then(async()=>{
   focusInterval=setInterval(focusTick,1000);focusTick();win.show();tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'../assets/icon.png')).resize({width:24,height:24}));tray.setToolTip('Aluguito');tray.setContextMenu(Menu.buildFromTemplate([{label:'Conversar',click:()=>showPanel('chat')},{label:'Agenda',click:()=>showPanel('agenda')},{label:'Meu dia',click:()=>showPanel('daily')},{label:'Pessoal',click:()=>showPanel('personal')},{label:'Ajustes',click:()=>showPanel('settings')},{label:'Mostrar Aluguito',click:()=>{win.show();win.focus();}},{type:'separator'},{label:'Sair',click:()=>app.quit()}]));tray.on('double-click',()=>{win.show();win.focus();});setInterval(reminders,30000);reminders();
   if (process.platform === 'win32' && app.isPackaged && !process.env.PORTABLE_EXECUTABLE_FILE &&
       existsSync(path.join(process.resourcesPath,'app-update.yml'))) {
+   const identity = require('../package.json').aluguitoReleaseVerification;
+   const verifyDownloaded = identity === undefined ? undefined : createReleaseVerifier(identity);
    updates = createUpdater(require('electron-updater').autoUpdater, {
+    verifyDownloaded,
     changed: state => broadcast('update-status', state),
     ready: state => {
      if (!Notification.isSupported()) return;

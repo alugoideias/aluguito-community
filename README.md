@@ -24,15 +24,31 @@ O [guia de uso](LEIA-ME.md) explica como configurar o Gemini, a conta Google e o
 
 ## Instalador para Windows
 
-O instalador é por usuário e conserva o mesmo diretório de dados do portátil. Feche a versão portátil antes de abrir a versão instalada pela primeira vez.
+O instalador é por usuário e conserva o mesmo diretório de dados do portátil. Feche a versão portátil antes de instalar. Ao concluir uma instalação normal, você encontra o Aluguito na Área de Trabalho e no menu Iniciar, e o mascote abre automaticamente. O executável fica em `%LOCALAPPDATA%\Programs\Aluguito\Aluguito.exe`.
 
 | Comando | Pacote |
 | --- | --- |
 | `npm run dist` | ZIP portátil |
 | `npm run dist:installer` | Instalador local para teste |
+| `npm run dist:github` | Instalador com canal GitHub Releases |
 
-### Canal de atualização
+### Canal no GitHub Releases
 
-Para gerar um instalador conectado a um canal, configure `ALUGUITO_UPDATE_URL` com o endereço HTTPS dos arquivos e `ALUGUITO_UPDATE_PUBLISHER` com o nome do editor no certificado de assinatura do Windows. Configure a identidade de assinatura do electron-builder no ambiente de build. Guarde as credenciais no gerenciador de segredos e mantenha a mesma identidade de assinatura em todas as versões do canal.
+O canal de distribuição é `alugoideias/aluguito-community`. A autenticação do GitHub fica na máquina que publica. As instalações do time consultam releases públicas sem credencial do GitHub.
 
-Para publicar uma nova versão, atualize o número em `package.json` e `package-lock.json` e gere o instalador. Envie o arquivo `Aluguito-Setup-*.exe` e seu `.blockmap` para o canal. Publique o `latest.yml` por último, depois que os outros arquivos estiverem disponíveis. Conserve o instalador e o `.blockmap` da versão anterior para download diferencial. Cada instalação verifica se há uma nova versão ao iniciar e permite instalar ao reiniciar em **Ajustes → Windows e dados**.
+#### Assinatura das atualizações
+
+- **Piloto com chave própria**. Rode `npm run signing:init` na conta Windows que publica. A chave privada é protegida pelo Windows em `%LOCALAPPDATA%\\Aluguito Release Signing`. O instalador contém a chave pública e o app verifica a assinatura Ed25519 do instalador baixado antes de liberar e antes de executar a atualização. O Windows pode sinalizar ou bloquear o instalador inicial, porque essa assinatura é verificada pelo Aluguito.
+- **Certificado de assinatura de código**. Defina `ALUGUITO_UPDATE_PUBLISHER` com o nome que consta no certificado. Se usar o repositório de certificados do Windows, `ALUGUITO_SIGNING_THUMBPRINT` seleciona o certificado. Continue publicando o arquivo de assinatura do piloto durante a migração para que as instalações antigas aceitem a nova versão.
+
+Guarde a chave privada e credenciais fora do código. A conta Windows que criou a chave é usada para assinar versões futuras. Se a chave for perdida, será preciso instalar manualmente uma nova versão com uma nova identidade de atualização.
+
+#### Publicação
+
+1. Atualize a versão em `package.json` e `package-lock.json`. Sincronize a edição pública e crie nela a tag da versão, por exemplo `v0.2.13`.
+2. Rode `npm run dist:github`. Confira o conteúdo em `dist/github/<versão>/`. Publique numa mesma Release o instalador, `latest.yml`, o arquivo `.blockmap` e, para instalações do piloto, o arquivo `.exe.sig`.
+3. Com o GitHub CLI autenticado, `npm run release:github` gera e publica o conjunto na tag já existente. Mantenha os arquivos das Releases anteriores disponíveis para atualizações diferenciais.
+
+O time instala a primeira versão uma vez. As próximas aparecem em **Ajustes → Windows e dados → Buscar atualização**.
+
+Para usar outro repositório em um fork, configure `ALUGUITO_UPDATE_GITHUB` como `dono/repositorio` e rode `npm run dist:installer` com a identidade de assinatura do seu projeto. Um canal HTTPS genérico pode usar `ALUGUITO_UPDATE_URL` e um certificado de assinatura de código.
