@@ -10,8 +10,9 @@ function syncPetAnimation() {
  clearInterval(animationTick);
  const coffee = petState === 'coffee';
  const draw = coffee ? petAnimation?.coffee : idleStates.includes(petState) && petAnimation?.idle;
- animationCanvas.hidden = !draw || (reducedMotion.matches && !coffee);
- if (animationCanvas.hidden) return;
+ const spriteFrame = !draw || (reducedMotion.matches && !coffee);
+ animationCanvas.hidden = spriteFrame && !petAnimation?.frame;
+ if (spriteFrame) return;
  if (reducedMotion.matches) {
   draw(1000, petState);
   return;
@@ -52,6 +53,9 @@ function drawPetFrame() {
  const step = coffee ? {row: skinData?.coffeeRow || 0, count: 6} : petStates[petState] || petStates.idle;
  const steady = reducedMotion.matches || (petState === 'coffee' && !coffee);
  const frame = (steady ? 0 : petFrame % step.count) + (step.start || 0);
+ if (petAnimation?.frame && petState !== 'coffee' && (!idleStates.includes(petState) || reducedMotion.matches)) {
+  petAnimation.frame(step.row,frame);
+ }
  const columns = coffee || petStates === atlasStates ? 6 : 8;
  sprite.style.transform = 'translate(' + (-frame * 192) + 'px,' + (-step.row * cellHeight) + 'px)';
  sprite.style.clipPath = sprite.classList.contains('static-skin') ? 'none' :

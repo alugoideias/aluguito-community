@@ -541,6 +541,14 @@ app.whenReady().then(async()=>{
    const animatedFace = await win.webContents.executeJavaScript("(async()=>{const canvas=document.getElementById('pet-animation');const ctx=canvas.getContext('2d'); const before=ctx.getImageData(65,72,70,32).data;await new Promise(r=>setTimeout(r,240));const after=ctx.getImageData(65,72,70,32).data;return !canvas.hidden&&canvas.classList.contains('soft-palette')&&before.some((value,index)=>value!==after[index])})()");
    assert.equal(animatedFace,true);
    await fs.writeFile(path.join(qaDir,'Aluguito-'+id+'.png'),(await win.webContents.capturePage()).toPNG());const anchor={...petRect},bounds=win.getBounds();await playMotion('coffee');await pause(350);assert.deepEqual(petRect,anchor);assert.deepEqual(win.getBounds(),bounds);await fs.writeFile(path.join(qaDir,'Aluguito-'+id+'-cafe.png'),(await win.webContents.capturePage()).toPNG());stopMotion();}
+  await win.webContents.executeJavaScript("window.aluguito.call('select-skin','cientista')");
+  const scientistWorks = await win.webContents.executeJavaScript(
+   '(async()=>{for(let n=0;n<40;n++){if(skinData?.id==="cientista"&&petAnimation?.frame)break;' +
+   'await new Promise(r=>setTimeout(r,50));}if(!petAnimation?.frame)return false;' +
+   'for(const motion of ["walking","jumping","flying","coffee","idle"]){' +
+   'changePet(motion);if(animationCanvas.hidden)return false;}return true;})()'
+  );
+  assert.equal(scientistWorks,true);
   await win.webContents.executeJavaScript("window.aluguito.call('select-skin','natal')");await pause(100);await playMotion('coffee');await pause(350);assert.equal(await win.webContents.executeJavaScript("document.getElementById('sprite').dataset.motion"),'coffee');await fs.writeFile(path.join(qaDir,'Aluguito-coffee.png'),(await win.webContents.capturePage()).toPNG());stopMotion();
   await win.webContents.executeJavaScript("window.aluguito.call('select-skin','default')");
   collapse();const anchorBefore={...petRect},boundsBefore=win.getBounds();
@@ -608,7 +616,7 @@ app.whenReady().then(async()=>{
       const shot = await win.webContents.executeJavaScript(
        '(() => {changePet(' + JSON.stringify(motion) + '); clearInterval(animationTick); clearTimeout(petReset);' +
        'for(const animation of petFrameBox.getAnimations()){animation.pause();animation.currentTime=' + time + ';}' +
-       'if (!animationCanvas.hidden) {const draw=petState==="coffee"?petAnimation.coffee:petAnimation.idle;draw(' + time + ',petState);}' +
+       'if (!animationCanvas.hidden && (petState==="coffee" || idleStates.includes(petState))) {const draw=petState==="coffee"?petAnimation.coffee:petAnimation.idle;draw(' + time + ',petState);}' +
        'else {petFrame=' + Math.floor(time / 180) + ';drawPetFrame();}' +
        'const box=talk.getBoundingClientRect(); return {x:Math.floor(box.x),y:Math.floor(box.y),width:Math.ceil(box.width),height:Math.ceil(box.height)};' +
        '})()'
@@ -620,9 +628,9 @@ app.whenReady().then(async()=>{
     }
    }
   }
-  console.log(JSON.stringify({passed:true,ui,googleAccountChat:true,personalReminders:true,dailyOverview:true,mcpWriteSettings:true,compactSettings:true,animatedFace:true,ambientMotion:true,pomodoro:true,coffeeAnimation:true,animatedSkins:true,walkingAndFlying:true,anchoredMotions:true,plainCartoon:true,freeResize:true,independentPanelMove:true,mouseDrag:true,mascotActivation:true,singleWindow:true,collapsed:true,keyRetainedAfterReload:true,encryptedStorage:true}));app.exit(0);
+  console.log(JSON.stringify({passed:true,ui,googleAccountChat:true,personalReminders:true,dailyOverview:true,mcpWriteSettings:true,compactSettings:true,animatedFace:true,ambientMotion:true,pomodoro:true,coffeeAnimation:true,scientistWorks,animatedSkins:true,walkingAndFlying:true,anchoredMotions:true,plainCartoon:true,freeResize:true,independentPanelMove:true,mouseDrag:true,mascotActivation:true,singleWindow:true,collapsed:true,keyRetainedAfterReload:true,encryptedStorage:true}));app.exit(0);
  }catch(e){await fs.writeFile(path.join(app.getPath('userData'),'failure.png'),(await win.webContents.capturePage()).toPNG()).catch(()=>{});console.error(redactError(e.stack||e));app.exit(1);}}else{
-  focusInterval=setInterval(focusTick,1000);focusTick();win.show();tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'../assets/icon.png')).resize({width:24,height:24}));tray.setToolTip('Aluguito');tray.setContextMenu(Menu.buildFromTemplate([{label:'Conversar',click:()=>showPanel('chat')},{label:'Agenda',click:()=>showPanel('agenda')},{label:'Meu dia',click:()=>showPanel('daily')},{label:'Pessoal',click:()=>showPanel('personal')},{label:'Ajustes',click:()=>showPanel('settings')},{label:'Mostrar Aluguito',click:()=>{win.show();win.focus();}},{type:'separator'},{label:'Sair',click:()=>app.quit()}]));tray.on('double-click',()=>{win.show();win.focus();});setInterval(reminders,30000);reminders();
+  focusInterval=setInterval(focusTick,1000);focusTick();win.show();tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'../assets/icon.png')).crop({x:76,y:63,width:104,height:83}).resize({width:32}));tray.setToolTip('Aluguito');tray.setContextMenu(Menu.buildFromTemplate([{label:'Conversar',click:()=>showPanel('chat')},{label:'Agenda',click:()=>showPanel('agenda')},{label:'Meu dia',click:()=>showPanel('daily')},{label:'Pessoal',click:()=>showPanel('personal')},{label:'Ajustes',click:()=>showPanel('settings')},{label:'Mostrar Aluguito',click:()=>{win.show();win.focus();}},{type:'separator'},{label:'Sair',click:()=>app.quit()}]));tray.on('double-click',()=>{win.show();win.focus();});setInterval(reminders,30000);reminders();
   if (process.platform === 'win32' && app.isPackaged && !process.env.PORTABLE_EXECUTABLE_FILE &&
       existsSync(path.join(process.resourcesPath,'app-update.yml'))) {
    const identity = require('../package.json').aluguitoReleaseVerification;
