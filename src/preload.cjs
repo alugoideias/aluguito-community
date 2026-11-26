@@ -1,0 +1,6 @@
+const { contextBridge, ipcRenderer } = require('electron');
+const allowed = new Set(['status','check-update','install-update','settings','test-key','chat','clear-history','import-google','connect-google','disconnect-google','events','emails','daily-overview','personal-list','personal-parse','personal-create','personal-action','open-link','panel','hide-panel','pet-menu','pet-state','toggle-panel','new-conversation','select-conversation','rename-conversation','delete-conversation','connect-mcp','disconnect-mcp','refresh-mcp-permissions','list-models','begin-gesture','end-gesture','select-mcp','add-mcp','remove-mcp','save-memory','save-preferred-name','import-memory','export-memory','skin-image','select-skin','import-skin','play-motion','focus-action']);
+contextBridge.exposeInMainWorld('aluguito', {
+  call: async (channel,...args) => { if(!allowed.has(channel)) throw new Error('Ação indisponível.'); const result=await ipcRenderer.invoke(channel,...args); if(!result.ok) throw new Error(result.error); return result.value; },
+  on: (channel,callback) => { if(!['navigate','update-status','pet-state','reminder','personal-update','appearance','retry','skin-changed','focus-update','pet-toast'].includes(channel))return; ipcRenderer.on(channel,(_event,value)=>callback(value)); }
+});

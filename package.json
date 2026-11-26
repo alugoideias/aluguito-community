@@ -1,0 +1,49 @@
+{
+  "name": "aluguito-assistente",
+  "version": "0.2.11",
+  "description": "Aluguito: seu companheiro de ideias, agenda e e-mail",
+  "author": "Alugo Ideias",
+  "private": true,
+  "main": "src/app.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "smoke": "electron . --smoke",
+    "dist": "electron-builder --win zip --x64",
+    "dist:installer": "electron-builder --config electron-builder.installer.cjs --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "dompurify": "3.5.0",
+    "electron": "45.3.4",
+    "electron-builder": "26.18.0",
+    "marked": "18.3.0"
+  },
+  "build": {
+    "appId": "com.alugoideias.aluguito",
+    "productName": "Aluguito",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "LEIA-ME.md",
+      "package.json",
+      "!src/main.cjs",
+      "!src/pet.*",
+      "!src/app.css"
+    ],
+    "asar": true,
+    "win": {
+      "target": "zip",
+      "icon": "assets/icon.ico",
+      "signExecutable": false
+    },
+    "artifactName": "Aluguito-Portable-${version}.${ext}"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "electron-updater": "6.8.11"
+  },
+  "license": "MIT"
+}
