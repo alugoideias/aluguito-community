@@ -59,7 +59,7 @@ Esta é uma versão de teste sem assinatura digital. O Windows pode mostrar um a
 - Arraste as bordas e os cantos do painel para ajustar livremente largura e altura.
 - No menu **•••**, use **Posição da conversa** para escolher esquerda, direita ou acima e **Tamanho da conversa** para os tamanhos prontos. As preferências são salvas.
 - **Reposicionar no canto direito** recupera o mascote na tela principal.
-- **Minimizar** oculta o mascote; o ícone perto do relógio permite mostrá-lo de novo.
+- **Ocultar** esconde o mascote e o painel. Use **Mostrar Aluguito** no ícone perto do relógio para trazê-lo de volta.
 - **Recolher conversa** fecha apenas o painel. **Sair do Aluguito** encerra também os lembretes.
 - O painel aberto também pode ser redimensionado pelas bordas. Não há uma segunda janela de conversa nem barra de menus em inglês.
 
